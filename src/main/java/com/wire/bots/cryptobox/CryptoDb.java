@@ -15,10 +15,9 @@ public class CryptoDb implements Closeable {
 
     public CryptoDb(String id, Storage storage) throws CryptoException {
         this.id = id;
-        root = String.format("%s/%s", DATA, id);
-
-        box = CryptoBox.open(root);
         this.storage = storage;
+        this.root = String.format("%s/%s", DATA, id);
+        this.box = CryptoBox.open(root);
     }
 
     public PreKey newLastPreKey() throws CryptoException {
