@@ -22,23 +22,17 @@ public class CryptoDb implements Closeable {
     }
 
     public PreKey newLastPreKey() throws CryptoException {
-        synchronized (box) {
-            return box.newLastPreKey();
-        }
+        return box.newLastPreKey();
     }
 
     public PreKey[] newPreKeys(int start, int num) throws CryptoException {
-        synchronized (box) {
-            return box.newPreKeys(start, num);
-        }
+        return box.newPreKeys(start, num);
     }
 
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException, IOException {
         try {
             begin(sid);
-            synchronized (box) {
-                return box.encryptFromPreKeys(sid, preKey, content);
-            }
+            return box.encryptFromPreKeys(sid, preKey, content);
         } finally {
             end(sid);
         }
@@ -47,9 +41,7 @@ public class CryptoDb implements Closeable {
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException, IOException {
         try {
             begin(sid);
-            synchronized (box) {
-                return box.encryptFromSession(sid, content);
-            }
+            return box.encryptFromSession(sid, content);
         } finally {
             end(sid);
         }
@@ -58,9 +50,7 @@ public class CryptoDb implements Closeable {
     public byte[] decrypt(String sid, byte[] decode) throws CryptoException, IOException {
         try {
             begin(sid);
-            synchronized (box) {
-                return box.decrypt(sid, decode);
-            }
+            return box.decrypt(sid, decode);
         } finally {
             end(sid);
         }

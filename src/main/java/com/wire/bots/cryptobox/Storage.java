@@ -5,12 +5,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Storage {
     private final ConcurrentHashMap<String, Record> db = new ConcurrentHashMap<>();
 
-    public class Record {
-        String id;
-        byte[] data;
-        boolean locked;
-    }
-
     public byte[] fetch(String id, String sid) {
         String key = id + sid;
 
@@ -30,16 +24,25 @@ public class Storage {
     public void update(String id, String sid, byte[] data) {
         String key = id + sid;
 
-        Record record = new Record();
+        Record record = new Record(data);
         record.id = sid;
-        record.data = data;
         db.put(key, record);
     }
 
-    private void sleep(int millis) {
+    protected void sleep(int millis) {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException ignored) {
+        }
+    }
+
+    class Record {
+        String id;
+        byte[] data;
+        boolean locked;
+
+        Record(byte[] data) {
+            this.data = data;
         }
     }
 }
