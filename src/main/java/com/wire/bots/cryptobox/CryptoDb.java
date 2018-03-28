@@ -22,47 +22,48 @@ public class CryptoDb implements Closeable {
     }
 
     public PreKey newLastPreKey() throws CryptoException {
-        return box.newLastPreKey();
+        synchronized (box) {
+            return box.newLastPreKey();
+        }
     }
 
     public PreKey[] newPreKeys(int start, int num) throws CryptoException {
-        return box.newPreKeys(start, num);
+        synchronized (box) {
+            return box.newPreKeys(start, num);
+        }
     }
 
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException, IOException {
-        //get from db and save locally
-        begin(sid);
-
-        byte[] ret = box.encryptFromPreKeys(sid, preKey, content);
-
-        //read local copy and save into db;
-        end(sid);
-
-        return ret;
+        try {
+            begin(sid);
+            synchronized (box) {
+                return box.encryptFromPreKeys(sid, preKey, content);
+            }
+        } finally {
+            end(sid);
+        }
     }
 
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException, IOException {
-        //get from db and save locally
-        begin(sid);
-
-        byte[] ret = box.encryptFromSession(sid, content);
-
-        //read local copy and save into db;
-        end(sid);
-
-        return ret;
+        try {
+            begin(sid);
+            synchronized (box) {
+                return box.encryptFromSession(sid, content);
+            }
+        } finally {
+            end(sid);
+        }
     }
 
     public byte[] decrypt(String sid, byte[] decode) throws CryptoException, IOException {
-        //get from db and save locally
-        begin(sid);
-
-        byte[] ret = box.decrypt(sid, decode);
-
-        //read local copy and save into db;
-        end(sid);
-
-        return ret;
+        try {
+            begin(sid);
+            synchronized (box) {
+                return box.decrypt(sid, decode);
+            }
+        } finally {
+            end(sid);
+        }
     }
 
     private void begin(String sid) throws IOException {
