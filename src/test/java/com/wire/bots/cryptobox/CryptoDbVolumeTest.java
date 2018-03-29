@@ -32,20 +32,19 @@ public class CryptoDbVolumeTest {
 
     @Test
     public void testConcurrentSessions() throws Exception {
-        Storage storage = new Storage();
+        MemStorage storage = new MemStorage();
         String aliceId = UUID.randomUUID().toString();
         CryptoDb alice = new CryptoDb(aliceId, storage);
         PreKey[] aliceKeys = alice.newPreKeys(0, 8);
 
         final AtomicLong elapse = new AtomicLong(0);
-        Date s = new Date();
 
         byte[] bytes = ("Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello ").getBytes();
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10000; i++) {
             executor.execute(() -> {
                 try {
                     String bobId = UUID.randomUUID().toString();
@@ -61,6 +60,8 @@ public class CryptoDbVolumeTest {
             });
         }
         alice.close();
+
+        Date s = new Date();
 
         executor.shutdown();
         executor.awaitTermination(20, TimeUnit.SECONDS);

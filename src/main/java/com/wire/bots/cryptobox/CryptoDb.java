@@ -1,33 +1,35 @@
 package com.wire.bots.cryptobox;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class CryptoDb implements Closeable {
+public class CryptoDb implements ICryptobox {
     private static final String DATA = "data";
     private final String id;
     private final CryptoBox box;
-    private final Storage storage;
+    private final IStorage storage;
     private final String root;
 
-    public CryptoDb(String id, Storage storage) throws CryptoException {
+    public CryptoDb(String id, IStorage storage) throws CryptoException {
         this.id = id;
         this.storage = storage;
         this.root = String.format("%s/%s", DATA, id);
         this.box = CryptoBox.open(root);
     }
 
+    @Override
     public PreKey newLastPreKey() throws CryptoException {
         return box.newLastPreKey();
     }
 
+    @Override
     public PreKey[] newPreKeys(int start, int num) throws CryptoException {
         return box.newPreKeys(start, num);
     }
 
+    @Override
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException, IOException {
         try {
             begin(sid);
@@ -37,6 +39,7 @@ public class CryptoDb implements Closeable {
         }
     }
 
+    @Override
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException, IOException {
         try {
             begin(sid);
@@ -46,6 +49,7 @@ public class CryptoDb implements Closeable {
         }
     }
 
+    @Override
     public byte[] decrypt(String sid, byte[] decode) throws CryptoException, IOException {
         try {
             begin(sid);
@@ -84,6 +88,7 @@ public class CryptoDb implements Closeable {
         box.close();
     }
 
+    @Override
     public boolean isClosed() {
         return box.isClosed();
     }

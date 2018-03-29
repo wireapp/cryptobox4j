@@ -69,7 +69,7 @@ public class CryptoDbConcurrentTest {
         executor.awaitTermination(20, TimeUnit.SECONDS);
     }
 
-    static class _Storage extends Storage {
+    static class _Storage extends MemStorage {
         private final Object lock = new Object();
         private Record record;
 

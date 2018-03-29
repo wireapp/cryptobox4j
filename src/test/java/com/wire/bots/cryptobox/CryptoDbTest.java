@@ -26,7 +26,7 @@ public class CryptoDbTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        Storage storage = new Storage();
+        MemStorage storage = new MemStorage();
         alice = new CryptoDb(aliceId, storage);
         bob = new CryptoDb(bobId, storage);
 

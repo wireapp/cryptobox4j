@@ -2,9 +2,10 @@ package com.wire.bots.cryptobox;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Storage {
+public class MemStorage implements IStorage {
     private final ConcurrentHashMap<String, Record> db = new ConcurrentHashMap<>();
 
+    @Override
     public byte[] fetch(String id, String sid) {
         String key = id + sid;
 
@@ -21,6 +22,7 @@ public class Storage {
         return record.data;
     }
 
+    @Override
     public void update(String id, String sid, byte[] data) {
         String key = id + sid;
 
