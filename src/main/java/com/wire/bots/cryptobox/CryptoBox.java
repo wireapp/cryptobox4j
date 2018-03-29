@@ -27,7 +27,7 @@ import java.io.File;
  * These sessions are pooled by a <tt>CryptoBox</tt>, i.e. if a session with the
  * same session ID is requested multiple times, the same instance is returned.
  * Consequently, <tt>CryptoSession</tt>s are kept in memory once loaded. They
- * can be explicitly closed through {@link CryptoBox#closeSession} or
+ * can be explicitly closed through  or
  * {@link CryptoBox#}. All loaded sessions are implicitly closed
  * when the <tt>CryptoBox</tt> itself is closed via {@link CryptoBox#close}.
  * Note that it is considered programmer error to let a <tt>CryptoBox</tt>
@@ -148,6 +148,7 @@ final public class CryptoBox implements ICryptobox {
      * <p>
      * The last prekey is never removed as a result of {@link #initSessionFromMessage}.
      */
+    @Override
     public PreKey newLastPreKey() throws CryptoException {
         errorIfClosed();
         return jniNewLastPreKey(this.ptr);
@@ -165,6 +166,7 @@ final public class CryptoBox implements ICryptobox {
      * @param start The ID (>= 0 and <= {@link #MAX_PREKEY_ID}) of the first prekey to generate.
      * @param num   The total number of prekeys to generate (> 0 and <= {@link #MAX_PREKEY_ID}).
      */
+    @Override
     public PreKey[] newPreKeys(int start, int num) throws CryptoException {
         if (start < 0 || start > MAX_PREKEY_ID) {
             throw new IllegalArgumentException("start must be >= 0 and <= " + MAX_PREKEY_ID);
@@ -184,6 +186,7 @@ final public class CryptoBox implements ICryptobox {
      * @return Cipher
      * @throws CryptoException throws Exception
      */
+    @Override
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException {
         CryptoSession cryptoSession = initSessionFromPreKey(sid, preKey);
         return cryptoSession.encrypt(content);
@@ -197,6 +200,7 @@ final public class CryptoBox implements ICryptobox {
      * @return Cipher or NULL in case there is no session for the given {@param #sid}
      * @throws CryptoException throws Exception
      */
+    @Override
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException {
         CryptoSession session = tryGetSession(sid);
         if (session != null) {
@@ -213,6 +217,7 @@ final public class CryptoBox implements ICryptobox {
      * @return Decrypted bytes
      * @throws CryptoException throws Exception
      */
+    @Override
     public byte[] decrypt(String sid, byte[] decode) throws CryptoException {
         CryptoSession cryptoSession = tryGetSession(sid);
         if (cryptoSession != null) {
@@ -279,22 +284,6 @@ final public class CryptoBox implements ICryptobox {
             }
             throw ex;
         }
-    }
-
-    /**
-     * Close a session.
-     * <p>
-     * <p>Note: After a session has been closed, any operations other than
-     * <tt>closeSession</tt> are considered programmer error and result in
-     * an {@link IllegalStateException}.</p>
-     * <p>
-     * <p>If the session is already closed, this is a no-op.</p>
-     *
-     * @param sess The session to close.
-     */
-    private void closeSession(CryptoSession sess) {
-        errorIfClosed();
-        sess.close();
     }
 
     /**

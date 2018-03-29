@@ -1,6 +1,7 @@
 package com.wire.bots.cryptobox;
 
 
+import com.wire.bots.cryptobox.storage.MemStorage;
 import org.junit.AfterClass;
 import org.junit.Test;
 
@@ -31,7 +32,7 @@ public class CryptoDbVolumeTest {
     }
 
     @Test
-    public void testConcurrentSessions() throws Exception {
+    public void testSessions() throws Exception {
         MemStorage storage = new MemStorage();
         String aliceId = UUID.randomUUID().toString();
         CryptoDb alice = new CryptoDb(aliceId, storage);
@@ -55,11 +56,10 @@ public class CryptoDbVolumeTest {
 
                     bob.close();
                 } catch (CryptoException | IOException e) {
-                    //System.out.println(e);
+                    System.out.println(e);
                 }
             });
         }
-        alice.close();
 
         Date s = new Date();
 
@@ -71,5 +71,7 @@ public class CryptoDbVolumeTest {
         elapse.getAndAdd(delta);
 
         System.out.printf("Elapsed: %,d ms\n", elapse.get());
+
+        alice.close();
     }
 }

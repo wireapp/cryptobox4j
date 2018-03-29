@@ -61,7 +61,7 @@ public class CryptoDbConcurrentTest {
                     byte[] cipher = bob.encryptFromSession(aliceId, text.getBytes());
                     alice.decrypt(bobId, cipher);
                 } catch (CryptoException | IOException e) {
-                    //System.out.println(e);
+                    System.out.println(e);
                 }
             });
         }
@@ -69,13 +69,13 @@ public class CryptoDbConcurrentTest {
         executor.awaitTermination(20, TimeUnit.SECONDS);
     }
 
-    static class _Storage extends MemStorage {
+    static class _Storage implements IStorage {
         private final Object lock = new Object();
         private Record record;
 
-        public byte[] fetch(String id, String sid) {
+        public IRecord fetch(String id, String sid) {
             if (record == null)
-                return null;
+                return new Record(null);
 
             boolean acquired = false;
             for (int i = 0; i < 1000; i++) {
@@ -88,13 +88,7 @@ public class CryptoDbConcurrentTest {
             if (!acquired)
                 System.out.println("Ohh");
 
-            return record.data;
-        }
-
-        public void update(String id, String sid, byte[] data) {
-            synchronized (lock) {
-                record = new Record(data);
-            }
+            return new Record(record.data);
         }
 
         private boolean acquire() {
@@ -104,6 +98,34 @@ public class CryptoDbConcurrentTest {
                     return true;
                 }
                 return false;
+            }
+        }
+
+        void sleep(int millis) {
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException ignored) {
+            }
+        }
+
+        private class Record implements IRecord {
+            byte[] data;
+            boolean locked;
+
+            Record(byte[] data) {
+                this.data = data;
+            }
+
+            @Override
+            public byte[] getData() {
+                return data;
+            }
+
+            @Override
+            public void persist(byte[] data) {
+                synchronized (lock) {
+                    record = new Record(data);
+                }
             }
         }
     }

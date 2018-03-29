@@ -31,45 +31,48 @@ public class CryptoDb implements ICryptobox {
 
     @Override
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException, IOException {
+        IRecord record = begin(sid);
         try {
-            begin(sid);
             return box.encryptFromPreKeys(sid, preKey, content);
         } finally {
-            end(sid);
+            end(sid, record);
         }
     }
 
     @Override
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException, IOException {
+        IRecord record = begin(sid);
         try {
-            begin(sid);
             return box.encryptFromSession(sid, content);
         } finally {
-            end(sid);
+            end(sid, record);
         }
     }
 
     @Override
     public byte[] decrypt(String sid, byte[] decode) throws CryptoException, IOException {
+        IRecord record = begin(sid);
         try {
-            begin(sid);
             return box.decrypt(sid, decode);
         } finally {
-            end(sid);
+            end(sid, record);
         }
     }
 
-    private void begin(String sid) throws IOException {
-        byte[] b = storage.fetch(id, sid);
-        if (b != null) {
-            writeFile(sid, b);
+    private IRecord begin(String sid) throws IOException {
+        IRecord record = storage.fetch(id, sid);
+        if (record != null && record.getData() != null) {
+            writeFile(sid, record.getData());
         }
+        return record;
     }
 
-    private void end(String sid) throws IOException {
+    private void end(String sid, IRecord record) throws IOException {
         byte[] b = readFile(sid);
-        if (b != null)
-            storage.update(id, sid, b);
+        if (b != null) {
+            if (record != null)
+                record.persist(b);
+        }
     }
 
     private void writeFile(String sid, byte[] b) throws IOException {
