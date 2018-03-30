@@ -1,7 +1,21 @@
+sudo: required
+
+language: rust
+
+cache: cargo
+
 matrix:
   include:
     - language: C
-    - language: rust
-    - language: Java
-    
+
+rust:
+  # check it compiles on the latest stable compiler
+  - stable
+
 script: make
+
+before_script:
+  - export PATH=$HOME/.cargo/bin:$PATH
+  - cargo install cargo-update || echo "cargo-update already installed"
+  - cargo install cargo-travis || echo "cargo-travis already installed"
+  - cargo install-update -a # update outdated cached binaries
