@@ -1,15 +1,12 @@
 sudo: required
 
-language: rust
-
 cache: cargo
 
 matrix:
   include:
     - language: C
-
-rust:
-  # check it compiles on the latest stable compiler
-  - stable
+    - language: Java
+    - language: rust
+      rust: nightly
 
 script: make
