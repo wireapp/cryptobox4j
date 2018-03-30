@@ -1,6 +1,6 @@
-LIBSODIUM_VERSION := 1.0.16
+LIBSODIUM_VERSION := 1.0.8
 LIBSODIUM         := libsodium-$(LIBSODIUM_VERSION)
-LIBSODIUM_URL     := http://download.libsodium.org/libsodium/releases/$(LIBSODIUM).tar.gz
+LIBSODIUM_URL     := https://download.libsodium.org/libsodium/releases/old/unsupported/$(LIBSODIUM).tar.gz
 
 build/src/$(LIBSODIUM):
 	mkdir -p build/src

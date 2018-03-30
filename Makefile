@@ -41,7 +41,7 @@ endif
 
 .PHONY: compile-java
 compile-java:
-    mvn package -DskipTests=true
+	mvn package -DskipTests=true
 
 .PHONY: distclean
 distclean:
