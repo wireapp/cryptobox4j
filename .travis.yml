@@ -2,8 +2,6 @@ matrix:
   include:
     - language: C
     - language: rust
-      rust:
-        - stable
     - language: Java
     
 script: make
