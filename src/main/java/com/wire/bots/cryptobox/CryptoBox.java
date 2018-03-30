@@ -132,7 +132,7 @@ final public class CryptoBox implements ICryptobox {
      */
     public byte[] copyIdentity() throws CryptoException {
         errorIfClosed();
-        return jniCopyIdentity(this.ptr);
+        return jniCopyIdentity(ptr);
     }
 
     /**
@@ -140,7 +140,7 @@ final public class CryptoBox implements ICryptobox {
      */
     public byte[] getLocalFingerprint() throws CryptoException {
         errorIfClosed();
-        return jniGetLocalFingerprint(this.ptr);
+        return jniGetLocalFingerprint(ptr);
     }
 
     /**
@@ -151,7 +151,7 @@ final public class CryptoBox implements ICryptobox {
     @Override
     public PreKey newLastPreKey() throws CryptoException {
         errorIfClosed();
-        return jniNewLastPreKey(this.ptr);
+        return jniNewLastPreKey(ptr);
     }
 
     /**
@@ -175,7 +175,7 @@ final public class CryptoBox implements ICryptobox {
             throw new IllegalArgumentException("num must be >= 1 and <= " + MAX_PREKEY_ID);
         }
         errorIfClosed();
-        return jniNewPreKeys(this.ptr, start, num);
+        return jniNewPreKeys(ptr, start, num);
     }
 
     /**
@@ -238,7 +238,7 @@ final public class CryptoBox implements ICryptobox {
      */
     private CryptoSession initSessionFromPreKey(String sid, PreKey prekey) throws CryptoException {
         errorIfClosed();
-        return jniInitSessionFromPreKey(this.ptr, sid, prekey.data);
+        return jniInitSessionFromPreKey(ptr, sid, prekey.data);
     }
 
     /**
@@ -251,7 +251,7 @@ final public class CryptoBox implements ICryptobox {
      */
     private SessionMessage initSessionFromMessage(String sid, byte[] message) throws CryptoException {
         errorIfClosed();
-        return jniInitSessionFromMessage(this.ptr, sid, message);
+        return jniInitSessionFromMessage(ptr, sid, message);
     }
 
     /**
@@ -264,7 +264,7 @@ final public class CryptoBox implements ICryptobox {
      */
     private CryptoSession getSession(String sid) throws CryptoException {
         errorIfClosed();
-        return jniLoadSession(this.ptr, sid);
+        return jniLoadSession(ptr, sid);
     }
 
     /**
@@ -303,7 +303,7 @@ final public class CryptoBox implements ICryptobox {
         if (cryptoSession != null) {
             cryptoSession.close();
         }
-        jniDeleteSession(this.ptr, sid);
+        jniDeleteSession(ptr, sid);
     }
 
     /**
@@ -320,7 +320,7 @@ final public class CryptoBox implements ICryptobox {
         if (ptr == 0) {
             return;
         }
-        jniClose(this.ptr);
+        jniClose(ptr);
         ptr = 0;
     }
 

@@ -7,6 +7,19 @@ import java.io.ByteArrayInputStream;
 import java.sql.*;
 
 public class PgStorage implements IStorage {
+    private final String user;
+    private final String password;
+    private final String db;
+    private final String host;
+    private final int port;
+
+    public PgStorage(String user, String password, String db, String host, int port) {
+        this.user = user;
+        this.password = password;
+        this.db = db;
+        this.host = host;
+        this.port = port;
+    }
 
     @Override
     public IRecord fetch(String id, String sid) {
@@ -30,7 +43,8 @@ public class PgStorage implements IStorage {
     private Connection newConnection() throws SQLException, InterruptedException {
         while (true) {
             try {
-                Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres");
+                String url = String.format("jdbc:postgresql://%s:%d/%s", host, port, db);
+                Connection connection = DriverManager.getConnection(url, user, password);
                 connection.setAutoCommit(false);
                 return connection;
             } catch (Exception e) {
@@ -61,23 +75,13 @@ public class PgStorage implements IStorage {
 
         @Override
         public void persist(byte[] data) {
-            try {
-                PreparedStatement stmt = connection.prepareStatement("INSERT INTO sessions (id, data) VALUES (?, ?) " +
-                        "ON CONFLICT (id) DO UPDATE SET data = ?");
+            String sql = "INSERT INTO sessions (id, data) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data";
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1, sid);
                 stmt.setBinaryStream(2, new ByteArrayInputStream(data));
-                stmt.setBinaryStream(3, new ByteArrayInputStream(data));
-
                 stmt.executeUpdate();
-
-                stmt.close();
             } catch (Exception e) {
                 System.out.println(e.getClass().getName() + ": " + e.getMessage());
-                try {
-                    connection.rollback();
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
             } finally {
                 try {
                     connection.commit();

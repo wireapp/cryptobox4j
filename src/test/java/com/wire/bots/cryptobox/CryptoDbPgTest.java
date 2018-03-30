@@ -37,7 +37,7 @@ public class CryptoDbPgTest {
         aliceId = "" + random.nextInt();
         bobId = "" + random.nextInt();
 
-        storage = new PgStorage();
+        storage = new PgStorage("dejankovacevic", "password", "postgres", "localhost", 5432);
         alice = new CryptoDb(aliceId, storage);
         bob = new CryptoDb(bobId, storage);
 
@@ -97,7 +97,7 @@ public class CryptoDbPgTest {
     }
 
     @Test
-    public void testMassiveSessions() throws Exception {
+    public void testSynchronousSingleSession() throws Exception {
         Date s = new Date();
         for (int i = 0; i < 100; i++) {
             String text = "Hello Alice, This is Bob, again! " + i;
@@ -127,52 +127,7 @@ public class CryptoDbPgTest {
     }
 
     @Test
-    public void testConcurrentDifferentCBSessions() throws Exception {
-        Random random = new Random();
-        String aliceId = "" + random.nextInt();
-        CryptoDb alice = new CryptoDb(aliceId, storage);
-        PreKey[] aliceKeys = alice.newPreKeys(0, 8);
-
-        final AtomicLong elapse = new AtomicLong(0);
-        final AtomicInteger counter = new AtomicInteger(0);
-        byte[] bytes = ("Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
-                "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
-                "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
-                "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello ").getBytes();
-
-        ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
-
-        for (int i = 0; i < 10000; i++) {
-            executor.execute(() -> {
-                try {
-                    String bobId = "" + random.nextInt();
-                    try (CryptoDb bob = new CryptoDb(bobId, storage)) {
-                        bob.encryptFromPreKeys(aliceId, aliceKeys[0], bytes);
-                        bob.encryptFromSession(aliceId, bytes);
-                        bob.close();
-                    }
-                    counter.getAndIncrement();
-                } catch (CryptoException | IOException e) {
-                    System.out.println("testConcurrentDifferentCBSessions: " + e.toString());
-                }
-            });
-        }
-
-        Date s = new Date();
-        executor.shutdown();
-        executor.awaitTermination(60, TimeUnit.SECONDS);
-
-        Date e = new Date();
-        long delta = e.getTime() - s.getTime();
-        elapse.getAndAdd(delta);
-
-        System.out.printf("Count: %,d,  Elapsed: %,d ms\n", counter.get(), elapse.get());
-
-        alice.close();
-    }
-
-    @Test
-    public void testConcurrentSessions() throws Exception {
+    public void testConcurrentSingleSession() throws Exception {
         final String text = "Hello Alice, This is Bob, again! ";
 
         bob.encryptFromPreKeys(aliceId, aliceKeys[0], text.getBytes());
@@ -197,5 +152,50 @@ public class CryptoDbPgTest {
         long delta = e.getTime() - s.getTime();
 
         System.out.printf("Count: %,d,  Elapsed: %,d ms\n", counter.get(), delta);
+    }
+
+    @Test
+    public void testConcurrentMultipleSessions() throws Exception {
+        Random random = new Random();
+        String aliceId = "" + random.nextInt();
+        CryptoDb alice = new CryptoDb(aliceId, storage);
+        PreKey[] aliceKeys = alice.newPreKeys(0, 8);
+
+        final AtomicLong elapse = new AtomicLong(0);
+        final AtomicInteger counter = new AtomicInteger(0);
+        byte[] bytes = ("Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
+                "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
+                "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
+                "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello ").getBytes();
+
+        ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
+
+        for (int i = 0; i < 1000; i++) {
+            executor.execute(() -> {
+                try {
+                    String bobId = "" + random.nextInt();
+                    try (CryptoDb bob = new CryptoDb(bobId, storage)) {
+                        bob.encryptFromPreKeys(aliceId, aliceKeys[0], bytes);
+                        bob.encryptFromSession(aliceId, bytes);
+                        bob.close();
+                    }
+                    counter.getAndIncrement();
+                } catch (CryptoException | IOException e) {
+                    System.out.println("testConcurrentDifferentCBSessions: " + e.toString());
+                }
+            });
+        }
+
+        Date s = new Date();
+        executor.shutdown();
+        executor.awaitTermination(60, TimeUnit.SECONDS);
+
+        Date e = new Date();
+        long delta = e.getTime() - s.getTime();
+        elapse.getAndAdd(delta);
+
+        System.out.printf("testConcurrentMultipleSessions: Count: %,d,  Elapsed: %,d ms\n", counter.get(), elapse.get());
+
+        alice.close();
     }
 }

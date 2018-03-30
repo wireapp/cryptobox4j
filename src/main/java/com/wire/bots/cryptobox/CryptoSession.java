@@ -25,15 +25,25 @@ import java.io.Closeable;
  * <p>A <tt>CryptoSession</tt> is thread-safe.</p>
  */
 final class CryptoSession implements Closeable {
-    private long ptr;
     private final long boxPtr;
-    public final String id;
+    private final String id;
+    private long ptr;
 
     private CryptoSession(long boxPtr, long ptr, String id) {
         this.boxPtr = boxPtr;
         this.ptr = ptr;
         this.id = id;
     }
+
+    private native static void jniSave(long boxPtr, long ptr) throws CryptoException;
+
+    private native static byte[] jniEncrypt(long ptr, byte[] plaintext) throws CryptoException;
+
+    private native static byte[] jniDecrypt(long ptr, byte[] ciphertext) throws CryptoException;
+
+    private native static byte[] jniGetRemoteFingerprint(long ptr) throws CryptoException;
+
+    private native static void jniClose(long ptr);
 
     /**
      * Save the session, persisting any changes made to the underlying
@@ -43,7 +53,7 @@ final class CryptoSession implements Closeable {
     private void save() throws CryptoException {
         errorIfClosed();
         try {
-            jniSave(this.boxPtr, this.ptr);
+            jniSave(boxPtr, ptr);
         } finally {
             close();
         }
@@ -58,7 +68,7 @@ final class CryptoSession implements Closeable {
     byte[] encrypt(byte[] plaintext) throws CryptoException {
         errorIfClosed();
         try {
-            return jniEncrypt(this.ptr, plaintext);
+            return jniEncrypt(ptr, plaintext);
         } finally {
             save();
         }
@@ -73,7 +83,7 @@ final class CryptoSession implements Closeable {
     byte[] decrypt(byte[] cipher) throws CryptoException {
         errorIfClosed();
         try {
-            return jniDecrypt(this.ptr, cipher);
+            return jniDecrypt(ptr, cipher);
         } finally {
             save();
         }
@@ -84,7 +94,7 @@ final class CryptoSession implements Closeable {
         if (isClosed()) {
             return;
         }
-        jniClose(this.ptr);
+        jniClose(ptr);
         ptr = 0;
     }
 
@@ -103,13 +113,7 @@ final class CryptoSession implements Closeable {
         close();
     }
 
-    private native static void jniSave(long boxPtr, long ptr) throws CryptoException;
-
-    private native static byte[] jniEncrypt(long ptr, byte[] plaintext) throws CryptoException;
-
-    private native static byte[] jniDecrypt(long ptr, byte[] ciphertext) throws CryptoException;
-
-    private native static byte[] jniGetRemoteFingerprint(long ptr) throws CryptoException;
-
-    private native static void jniClose(long ptr);
+    public String getId() {
+        return id;
+    }
 }

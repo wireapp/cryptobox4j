@@ -41,13 +41,7 @@ endif
 
 .PHONY: compile-java
 compile-java:
-	mkdir -p build/classes
-	javac -d build/classes src/java/com/wire/cryptobox/*.java
-
-.PHONY: doc
-doc:
-	mkdir -p dist/javadoc
-	javadoc -public -d dist/javadoc src/java/com/wire/cryptobox/*.java
+    mvn package -DskipTests=true
 
 .PHONY: distclean
 distclean:
@@ -55,11 +49,11 @@ distclean:
 	rm -rf dist
 
 .PHONY: dist
-dist: compile doc
+dist: compile
 	mkdir -p dist/lib
 	cp build/lib/*.$(LIB_TYPE) dist/lib/
 	jar -cvf dist/cryptobox-jni-$(VERSION).jar -C build/classes .
-	tar -C dist -czf dist/cryptobox-jni-$(OS)-$(ARCH)-$(VERSION).tar.gz lib javadoc cryptobox-jni-$(VERSION).jar
+	tar -C dist -czf dist/cryptobox-jni-$(OS)-$(ARCH)-$(VERSION).tar.gz lib cryptobox-jni-$(VERSION).jar
 
 #############################################################################
 # cryptobox
