@@ -115,7 +115,7 @@ public class CryptoDbTest {
         CryptoBox dave = CryptoBox.open(davePath);
         PreKey[] davePrekeys = dave.newPreKeys(0, 8);
 
-        String text = "Hello Bob, This is Carl!";
+        String text = "Hello Dave, This is Carl!";
 
         // Encrypt using prekeys
         byte[] cipher = dave.encryptFromPreKeys(carlId, carlPrekeys[0], text.getBytes());
@@ -144,5 +144,6 @@ public class CryptoDbTest {
         assert text.equals(new String(decrypt));
 
         carl.close();
+        dave.close();
     }
 }

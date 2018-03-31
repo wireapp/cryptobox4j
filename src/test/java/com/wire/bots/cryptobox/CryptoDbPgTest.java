@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Random;
@@ -89,13 +90,15 @@ public class CryptoDbPgTest {
 
     @Test
     public void testIdentity() throws Exception {
-        final String carlId = "carl";
+        Random random = new Random();
+        final String carlId = "" + random.nextInt();
         final String dir = "data/" + carlId;
 
         CryptoDb carl = new CryptoDb(carlId, storage);
         PreKey[] carlPrekeys = carl.newPreKeys(0, 8);
 
-        String daveId = "dave";
+        String daveId = "" + random.nextInt();
+        ;
         String davePath = String.format("data/%s", daveId);
         CryptoBox dave = CryptoBox.open(davePath);
         PreKey[] davePrekeys = dave.newPreKeys(0, 8);
@@ -130,7 +133,7 @@ public class CryptoDbPgTest {
 
         carl.close();
     }
-    
+
     @Test
     public void testSynchronousSingleSession() throws Exception {
         Date s = new Date();
@@ -203,17 +206,21 @@ public class CryptoDbPgTest {
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello ").getBytes();
 
-        ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
+
+        ArrayList<CryptoDb> boxes = new ArrayList<>();
 
         for (int i = 0; i < 1000; i++) {
+            String bobId = "" + random.nextInt();
+            CryptoDb bob = new CryptoDb(bobId, storage);
+            bob.encryptFromPreKeys(aliceId, aliceKeys[0], bytes);
+            boxes.add(bob);
+        }
+
+        ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
+        for (CryptoDb bob : boxes) {
             executor.execute(() -> {
                 try {
-                    String bobId = "" + random.nextInt();
-                    try (CryptoDb bob = new CryptoDb(bobId, storage)) {
-                        bob.encryptFromPreKeys(aliceId, aliceKeys[0], bytes);
-                        bob.encryptFromSession(aliceId, bytes);
-                        bob.close();
-                    }
+                    bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
                 } catch (CryptoException | IOException e) {
                     System.out.println("testConcurrentDifferentCBSessions: " + e.toString());
@@ -231,6 +238,9 @@ public class CryptoDbPgTest {
 
         System.out.printf("testConcurrentMultipleSessions: Count: %,d,  Elapsed: %,d ms\n", counter.get(), elapse.get());
 
+        for (CryptoDb bob : boxes) {
+            bob.close();
+        }
         alice.close();
     }
 }
