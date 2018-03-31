@@ -6,7 +6,7 @@ import java.io.IOException;
 public interface ICryptobox extends Closeable {
     PreKey newLastPreKey() throws CryptoException;
 
-    PreKey[] newPreKeys(int start, int num) throws CryptoException;
+    PreKey[] newPreKeys(int start, int num) throws CryptoException, IOException;
 
     byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException, IOException;
 

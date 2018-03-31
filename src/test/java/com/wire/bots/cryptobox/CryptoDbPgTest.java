@@ -6,14 +6,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,11 +43,8 @@ public class CryptoDbPgTest {
     public static void clean() throws IOException {
         alice.close();
         bob.close();
-        Path rootPath = Paths.get("data");
-        Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+
+        Util.deleteDir("data");
     }
 
     @Test
@@ -96,6 +87,50 @@ public class CryptoDbPgTest {
         assert text.equals(new String(decrypt));
     }
 
+    @Test
+    public void testIdentity() throws Exception {
+        final String carlId = "carl";
+        final String dir = "data/" + carlId;
+
+        CryptoDb carl = new CryptoDb(carlId, storage);
+        PreKey[] carlPrekeys = carl.newPreKeys(0, 8);
+
+        String daveId = "dave";
+        String davePath = String.format("data/%s", daveId);
+        CryptoBox dave = CryptoBox.open(davePath);
+        PreKey[] davePrekeys = dave.newPreKeys(0, 8);
+
+        String text = "Hello Bob, This is Carl!";
+
+        // Encrypt using prekeys
+        byte[] cipher = dave.encryptFromPreKeys(carlId, carlPrekeys[0], text.getBytes());
+        byte[] decrypt = carl.decrypt(daveId, cipher);
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
+        Util.deleteDir(dir);
+
+        cipher = dave.encryptFromSession(carlId, text.getBytes());
+        carl = new CryptoDb(carlId, storage);
+        decrypt = carl.decrypt(daveId, cipher);
+
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
+        Util.deleteDir(dir);
+
+        carl = new CryptoDb(carlId, storage);
+
+        cipher = carl.encryptFromPreKeys(daveId, davePrekeys[0], text.getBytes());
+        decrypt = dave.decrypt(carlId, cipher);
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
+    }
+    
     @Test
     public void testSynchronousSingleSession() throws Exception {
         Date s = new Date();

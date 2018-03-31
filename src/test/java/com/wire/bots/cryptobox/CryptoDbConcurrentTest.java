@@ -5,13 +5,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -39,11 +34,7 @@ public class CryptoDbConcurrentTest {
         alice.close();
         bob.close();
 
-        Path rootPath = Paths.get("data");
-        Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Util.deleteDir("data");
     }
 
     @Test
@@ -72,8 +63,10 @@ public class CryptoDbConcurrentTest {
     static class _Storage implements IStorage {
         private final Object lock = new Object();
         private Record record;
+        private byte[] identity;
+        private ArrayList<PreKey> preKeys;
 
-        public IRecord fetch(String id, String sid) {
+        public IRecord fetchSession(String id, String sid) {
             if (record == null)
                 return new Record(null);
 
@@ -89,6 +82,28 @@ public class CryptoDbConcurrentTest {
                 System.out.println("Ohh");
 
             return new Record(record.data);
+        }
+
+        @Override
+        public byte[] fetchIdentity(String id) {
+            return identity;
+        }
+
+        @Override
+        public void insertIdentity(String id, byte[] data) {
+            identity = data;
+        }
+
+        @Override
+        public PreKey[] fetchPrekeys(String id) {
+            return preKeys == null ? null : preKeys.toArray(new PreKey[0]);
+        }
+
+        @Override
+        public void insertPrekey(String id, int kid, byte[] data) {
+            if (preKeys == null)
+                preKeys = new ArrayList<>();
+            preKeys.add(new PreKey(kid, data));
         }
 
         private boolean acquire() {

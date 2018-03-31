@@ -12,11 +12,16 @@ public class CryptoDb implements ICryptobox {
     private final IStorage storage;
     private final String root;
 
-    public CryptoDb(String id, IStorage storage) throws CryptoException {
+    public CryptoDb(String id, IStorage storage) throws CryptoException, IOException {
         this.id = id;
         this.storage = storage;
         this.root = String.format("%s/%s", DATA, id);
+
+        writeIdentity(storage.fetchIdentity(id));
+        writePrekeys(storage.fetchPrekeys(id));
+
         this.box = CryptoBox.open(root);
+        storage.insertIdentity(id, readIdentity());
     }
 
     @Override
@@ -25,8 +30,13 @@ public class CryptoDb implements ICryptobox {
     }
 
     @Override
-    public PreKey[] newPreKeys(int start, int num) throws CryptoException {
-        return box.newPreKeys(start, num);
+    public PreKey[] newPreKeys(int start, int num) throws CryptoException, IOException {
+        PreKey[] preKeys = box.newPreKeys(start, num);
+        for (int i = 0; i < num; i++) {
+            int kid = start + i;
+            storage.insertPrekey(id, kid, readPrekey(kid));
+        }
+        return preKeys;
     }
 
     @Override
@@ -60,30 +70,64 @@ public class CryptoDb implements ICryptobox {
     }
 
     private IRecord begin(String sid) throws IOException {
-        IRecord record = storage.fetch(id, sid);
-        if (record != null && record.getData() != null) {
-            writeFile(sid, record.getData());
+        IRecord record = storage.fetchSession(id, sid);
+        if (record != null) {
+            writeSession(sid, record.getData());
         }
         return record;
     }
 
     private void end(String sid, IRecord record) throws IOException {
-        byte[] b = readFile(sid);
+        byte[] b = readSession(sid);
         if (b != null) {
             if (record != null)
                 record.persist(b);
         }
     }
 
-    private void writeFile(String sid, byte[] b) throws IOException {
-        String file = String.format("%s/sessions/%s", root, sid);
-        Files.write(Paths.get(file), b);
+    private void writeSession(String sid, byte[] session) throws IOException {
+        if (session != null) {
+            String file = String.format("%s/sessions/%s", root, sid);
+            Files.write(Paths.get(file), session);
+        }
     }
 
-    private byte[] readFile(String sid) throws IOException {
+    private byte[] readSession(String sid) throws IOException {
         String file = String.format("%s/sessions/%s", root, sid);
         Path path = Paths.get(file);
         return Files.exists(path) ? Files.readAllBytes(path) : null;
+    }
+
+    private void writeIdentity(byte[] identity) throws IOException {
+        if (identity != null) {
+            String file = String.format("%s/identities/local", root);
+            Path path = Paths.get(file);
+            Files.createDirectories(path.getParent());
+            Files.write(path, identity);
+        }
+    }
+
+    private byte[] readIdentity() throws IOException {
+        String file = String.format("%s/identities/local", root);
+        Path path = Paths.get(file);
+        return Files.exists(path) ? Files.readAllBytes(path) : null;
+    }
+
+    private byte[] readPrekey(int kid) throws IOException {
+        String file = String.format("%s/prekeys/%d", root, kid);
+        Path path = Paths.get(file);
+        return Files.exists(path) ? Files.readAllBytes(path) : null;
+    }
+
+    private void writePrekeys(PreKey[] preKeys) throws IOException {
+        if (preKeys != null) {
+            for (PreKey preKey : preKeys) {
+                String file = String.format("%s/prekeys/%d", root, preKey.id);
+                Path path = Paths.get(file);
+                Files.createDirectories(path.getParent());
+                Files.write(path, preKey.data);
+            }
+        }
     }
 
     @Override

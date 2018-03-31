@@ -6,20 +6,15 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Comparator;
 
 public class CryptoDbTest {
     private final static String bobId = "bob";
     private final static String bobClientId = "bob_device";
     private final static String aliceId = "alice";
     private final static String aliceClientId = "alice_device";
+    private static MemStorage storage = new MemStorage();
     private static CryptoDb alice;
     private static CryptoDb bob;
     private static PreKey[] bobKeys;
@@ -27,23 +22,19 @@ public class CryptoDbTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        MemStorage storage = new MemStorage();
         alice = new CryptoDb(aliceId, storage);
         bob = new CryptoDb(bobId, storage);
 
-        bobKeys = bob.newPreKeys(0, 1);
-        aliceKeys = alice.newPreKeys(0, 1);
+        bobKeys = bob.newPreKeys(0, 8);
+        aliceKeys = alice.newPreKeys(0, 8);
     }
 
     @AfterClass
     public static void clean() throws IOException {
         alice.close();
         bob.close();
-        Path rootPath = Paths.get("data");
-        Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+
+        // Util.deleteDir("data");
     }
 
     @Test
@@ -109,5 +100,49 @@ public class CryptoDbTest {
             assert Arrays.equals(decrypt, text.getBytes());
             assert text.equals(new String(decrypt));
         }
+    }
+
+    @Test
+    public void testIdentity() throws Exception {
+        final String carlId = "carl";
+        final String dir = "data/" + carlId;
+
+        CryptoDb carl = new CryptoDb(carlId, storage);
+        PreKey[] carlPrekeys = carl.newPreKeys(0, 8);
+
+        String daveId = "dave";
+        String davePath = String.format("data/%s", daveId);
+        CryptoBox dave = CryptoBox.open(davePath);
+        PreKey[] davePrekeys = dave.newPreKeys(0, 8);
+
+        String text = "Hello Bob, This is Carl!";
+
+        // Encrypt using prekeys
+        byte[] cipher = dave.encryptFromPreKeys(carlId, carlPrekeys[0], text.getBytes());
+        byte[] decrypt = carl.decrypt(daveId, cipher);
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
+        Util.deleteDir(dir);
+
+        cipher = dave.encryptFromSession(carlId, text.getBytes());
+        carl = new CryptoDb(carlId, storage);
+        decrypt = carl.decrypt(daveId, cipher);
+
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
+        Util.deleteDir(dir);
+
+        carl = new CryptoDb(carlId, storage);
+
+        cipher = carl.encryptFromPreKeys(daveId, davePrekeys[0], text.getBytes());
+        decrypt = dave.decrypt(carlId, cipher);
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
     }
 }

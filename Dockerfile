@@ -14,6 +14,7 @@ RUN apt-get update \
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 RUN mkdir -p /opt/wire/lib
+ENV LD_LIBRARY_PATH=/opt/wire/lib
 
 COPY libs/libsodium.so        /opt/wire/lib/libsodium.so
 COPY libs/libcryptobox.so     /opt/wire/lib/libcryptobox.so
