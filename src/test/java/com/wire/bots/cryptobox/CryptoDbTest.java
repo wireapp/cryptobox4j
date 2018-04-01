@@ -34,7 +34,7 @@ public class CryptoDbTest {
         alice.close();
         bob.close();
 
-        // Util.deleteDir("data");
+        Util.deleteDir("data");
     }
 
     @Test

@@ -7,17 +7,25 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class CryptoDbConcurrentTest {
-    private final static String bobId = "bob";
-    private final static String aliceId = "alice";
+    private final static String bobId;
+    private final static String aliceId;
     private static CryptoDb alice;
     private static CryptoDb bob;
     private static PreKey[] bobKeys;
     private static PreKey[] aliceKeys;
+
+    static {
+        Random rnd = new Random();
+        aliceId = "" + rnd.nextInt();
+        bobId = "" + rnd.nextInt();
+    }
+
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
 
     @BeforeClass

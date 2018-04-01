@@ -6,7 +6,7 @@
 
     <groupId>com.wire.bots</groupId>
     <artifactId>cryptobox</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 
     <dependencies>
         <dependency>
@@ -82,6 +82,22 @@
                 </executions>
             </plugin>
         </plugins>
+        <extensions>
+            <extension>
+                <groupId>io.packagecloud.maven.wagon</groupId>
+                <artifactId>maven-packagecloud-wagon</artifactId>
+                <version>0.0.6</version>
+            </extension>
+        </extensions>
     </build>
-
+    <distributionManagement>
+        <repository>
+            <id>packagecloud-dkovacevic</id>
+            <url>packagecloud+https://packagecloud.io/dkovacevic/cryptobox4j</url>
+        </repository>
+        <snapshotRepository>
+            <id>packagecloud-dkovacevic</id>
+            <url>packagecloud+https://packagecloud.io/dkovacevic/cryptobox4j</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

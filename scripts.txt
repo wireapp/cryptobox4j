@@ -14,3 +14,9 @@ CREATE TABLE prekeys (
     data       bytea NOT NULL,
     PRIMARY KEY (id, kid)
 );
+
+
+CREATE TABLE states (
+ botId UUID NOT NULL PRIMARY KEY,
+ bot json NOT NULL
+);
