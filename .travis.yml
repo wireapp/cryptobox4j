@@ -1,12 +1,10 @@
-sudo: required
-
-cache: cargo
+language: Java
 
 matrix:
   include:
     - language: C
-    - language: Java
+      script: make compile-native
     - language: rust
-      rust: nightly
+      script: make cryptobox
 
 script: make
