@@ -1,10 +1,12 @@
-language: Java
 
 matrix:
   include:
+    - language: Java
     - language: C
-      script: make compile-native
     - language: rust
-      script: make cryptobox
+      script: make
 
-script: make
+before_install:
+  - sudo apt-get update -q
+  - sudo apt-get install libsodium-dev -y
+  - sudo apt-get install pkg-config -y
