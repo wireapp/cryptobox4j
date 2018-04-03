@@ -1,12 +1,15 @@
 
+cache: cargo
+
 matrix:
   include:
-    - language: Java
-    - language: C
+    - language: java
+    - language: c
     - language: rust
       script: make
 
 before_install:
   - sudo apt-get update -q
+  - sudo apt-get install libsodium18 -y
   - sudo apt-get install libsodium-dev -y
   - sudo apt-get install pkg-config -y
