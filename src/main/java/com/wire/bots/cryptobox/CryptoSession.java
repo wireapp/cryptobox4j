@@ -50,7 +50,7 @@ final class CryptoSession implements Closeable {
      * key material as a result of any {@link #encrypt} and {@link #decrypt}
      * operations since the last save.
      */
-    private void save() throws CryptoException {
+    void save() throws CryptoException {
         errorIfClosed();
         try {
             jniSave(boxPtr, ptr);

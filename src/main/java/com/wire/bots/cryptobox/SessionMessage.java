@@ -15,7 +15,7 @@
 
 package com.wire.bots.cryptobox;
 
-final class SessionMessage {
+final class SessionMessage implements AutoCloseable {
     private final CryptoSession session;
     private final byte[] message;
 
@@ -30,5 +30,10 @@ final class SessionMessage {
 
     byte[] getMessage() {
         return this.message;
+    }
+
+    @Override
+    public void close() throws CryptoException {
+        session.save();
     }
 }

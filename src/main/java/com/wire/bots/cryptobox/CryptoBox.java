@@ -223,8 +223,9 @@ final public class CryptoBox implements ICryptobox {
         if (cryptoSession != null) {
             return cryptoSession.decrypt(decode);
         }
-        SessionMessage sessionMessage = initSessionFromMessage(sid, decode);
-        return sessionMessage.getMessage();
+        try (SessionMessage sessionMessage = initSessionFromMessage(sid, decode)) {
+            return sessionMessage.getMessage();
+        }
     }
 
     /**
