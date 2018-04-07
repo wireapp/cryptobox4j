@@ -8,8 +8,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Random;
 
-public class CryptoDbTest {
+public class CryptoMemoryTest {
     private final static String bobId = "bob";
     private final static String bobClientId = "bob_device";
     private final static String aliceId = "alice";
@@ -104,18 +105,18 @@ public class CryptoDbTest {
 
     @Test
     public void testIdentity() throws Exception {
-        final String carlId = "carl";
+        Random random = new Random();
+        final String carlId = "" + random.nextInt();
         final String dir = "data/" + carlId;
 
         CryptoDb carl = new CryptoDb(carlId, storage);
         PreKey[] carlPrekeys = carl.newPreKeys(0, 8);
 
-        String daveId = "dave";
-        String davePath = String.format("data/%s", daveId);
-        CryptoBox dave = CryptoBox.open(davePath);
+        String daveId = "" + random.nextInt();
+        CryptoDb dave = new CryptoDb(daveId, storage);
         PreKey[] davePrekeys = dave.newPreKeys(0, 8);
 
-        String text = "Hello Dave, This is Carl!";
+        String text = "Hello Bob, This is Carl!";
 
         // Encrypt using prekeys
         byte[] cipher = dave.encryptFromPreKeys(carlId, carlPrekeys[0], text.getBytes());
@@ -124,10 +125,12 @@ public class CryptoDbTest {
         assert text.equals(new String(decrypt));
 
         carl.close();
+        dave.close();
         Util.deleteDir(dir);
 
-        cipher = dave.encryptFromSession(carlId, text.getBytes());
+        dave = new CryptoDb(daveId, storage);
         carl = new CryptoDb(carlId, storage);
+        cipher = dave.encryptFromSession(carlId, text.getBytes());
         decrypt = carl.decrypt(daveId, cipher);
 
         assert Arrays.equals(decrypt, text.getBytes());

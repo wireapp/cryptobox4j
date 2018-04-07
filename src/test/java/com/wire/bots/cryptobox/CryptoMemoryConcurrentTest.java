@@ -12,7 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class CryptoDbConcurrentTest {
+public class CryptoMemoryConcurrentTest {
     private final static String bobId;
     private final static String aliceId;
     private static CryptoDb alice;

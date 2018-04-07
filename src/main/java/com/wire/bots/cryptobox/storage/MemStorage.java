@@ -20,11 +20,11 @@ public class MemStorage implements IStorage {
             return new Record(key, null);
 
         for (int i = 0; i < 1000 && record.locked; i++) {
-            sleep(10);
+            sleep(1);
             record = sessions.get(key);
         }
         record.locked = true;
-        sessions.put(key, record);
+        //sessions.put(key, record);
         return new Record(key, record.data);
     }
 
@@ -62,10 +62,6 @@ public class MemStorage implements IStorage {
         return String.format("%s-%s", id, sid);
     }
 
-    private String key(String id, int kid) {
-        return String.format("%s-%d", id, kid);
-    }
-
     private class Record implements IRecord {
         private final String key;
         public byte[] data;
@@ -83,7 +79,8 @@ public class MemStorage implements IStorage {
 
         @Override
         public void persist(byte[] data) {
-            sessions.put(key, this);
+            this.data = data;
+            //sessions.put(key, this);
         }
     }
 }

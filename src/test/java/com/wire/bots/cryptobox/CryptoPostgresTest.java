@@ -15,9 +15,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class CryptoDbPgTest {
+public class CryptoPostgresTest {
     private static String bobId;
     private static String aliceId;
     private static CryptoDb alice;
@@ -98,7 +97,6 @@ public class CryptoDbPgTest {
         PreKey[] carlPrekeys = carl.newPreKeys(0, 8);
 
         String daveId = "" + random.nextInt();
-        ;
         String davePath = String.format("data/%s", daveId);
         CryptoBox dave = CryptoBox.open(davePath);
         PreKey[] davePrekeys = dave.newPreKeys(0, 8);
@@ -194,12 +192,12 @@ public class CryptoDbPgTest {
 
     @Test
     public void testConcurrentMultipleSessions() throws Exception {
+        final int count = 100;
         Random random = new Random();
         String aliceId = "" + random.nextInt();
         CryptoDb alice = new CryptoDb(aliceId, storage);
-        PreKey[] aliceKeys = alice.newPreKeys(0, 8);
+        PreKey[] aliceKeys = alice.newPreKeys(0, count);
 
-        final AtomicLong elapse = new AtomicLong(0);
         final AtomicInteger counter = new AtomicInteger(0);
         byte[] bytes = ("Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
@@ -209,14 +207,15 @@ public class CryptoDbPgTest {
 
         ArrayList<CryptoDb> boxes = new ArrayList<>();
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < count; i++) {
             String bobId = "" + random.nextInt();
             CryptoDb bob = new CryptoDb(bobId, storage);
-            bob.encryptFromPreKeys(aliceId, aliceKeys[0], bytes);
+            bob.encryptFromPreKeys(aliceId, aliceKeys[i], bytes);
             boxes.add(bob);
         }
 
-        ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
+        ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(24);
+        Date s = new Date();
         for (CryptoDb bob : boxes) {
             executor.execute(() -> {
                 try {
@@ -228,15 +227,14 @@ public class CryptoDbPgTest {
             });
         }
 
-        Date s = new Date();
         executor.shutdown();
         executor.awaitTermination(60, TimeUnit.SECONDS);
 
         Date e = new Date();
         long delta = e.getTime() - s.getTime();
-        elapse.getAndAdd(delta);
 
-        System.out.printf("testConcurrentMultipleSessions: Count: %,d,  Elapsed: %,d ms\n", counter.get(), elapse.get());
+        System.out.printf("testConcurrentMultipleSessions: Count: %,d,  Elapsed: %,d ms, avg: %.1f/sec\n",
+                counter.get(), delta, (count * 1000f) / delta);
 
         for (CryptoDb bob : boxes) {
             bob.close();

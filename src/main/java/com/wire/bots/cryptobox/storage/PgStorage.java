@@ -65,7 +65,9 @@ public class PgStorage implements IStorage {
             c = newConnection();
             PreparedStatement stmt = c.prepareStatement(sql);
             stmt.setString(1, id);
-            stmt.setBinaryStream(2, new ByteArrayInputStream(data));
+            try (ByteArrayInputStream stream = new ByteArrayInputStream(data)) {
+                stmt.setBinaryStream(2, stream);
+            }
             stmt.executeUpdate();
         } catch (Exception e) {
             System.out.println(e.getClass().getName() + ": " + e.getMessage());
@@ -112,7 +114,9 @@ public class PgStorage implements IStorage {
             PreparedStatement stmt = c.prepareStatement(sql);
             stmt.setString(1, id);
             stmt.setInt(2, kid);
-            stmt.setBinaryStream(3, new ByteArrayInputStream(data));
+            try (ByteArrayInputStream stream = new ByteArrayInputStream(data)) {
+                stmt.setBinaryStream(3, stream);
+            }
             stmt.executeUpdate();
         } catch (Exception e) {
             System.out.println(e.getClass().getName() + ": " + e.getMessage());
@@ -166,7 +170,9 @@ public class PgStorage implements IStorage {
             String sql = "INSERT INTO sessions (id, data) VALUES (?, ?) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1, sid);
-                stmt.setBinaryStream(2, new ByteArrayInputStream(data));
+                try (ByteArrayInputStream stream = new ByteArrayInputStream(data)) {
+                    stmt.setBinaryStream(2, stream);
+                }
                 stmt.executeUpdate();
             } catch (Exception e) {
                 System.out.println(e.getClass().getName() + ": " + e.getMessage());

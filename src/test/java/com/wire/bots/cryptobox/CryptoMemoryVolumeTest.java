@@ -6,15 +6,15 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class CryptoDbVolumeTest {
+public class CryptoMemoryVolumeTest {
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
 
     @AfterClass
@@ -24,44 +24,54 @@ public class CryptoDbVolumeTest {
 
     @Test
     public void testConcurrentMultipleSessions() throws Exception {
+        final int count = 1000;
+
         MemStorage storage = new MemStorage();
         String aliceId = UUID.randomUUID().toString();
         CryptoDb alice = new CryptoDb(aliceId, storage);
-        PreKey[] aliceKeys = alice.newPreKeys(0, 8);
+        PreKey[] aliceKeys = alice.newPreKeys(0, count);
 
-        final AtomicLong elapse = new AtomicLong(0);
         final AtomicInteger counter = new AtomicInteger(0);
         byte[] bytes = ("Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello ").getBytes();
 
-        for (int i = 0; i < 1000; i++) {
+        ArrayList<CryptoDb> boxes = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            try {
+                String bobId = UUID.randomUUID().toString();
+                CryptoDb bob = new CryptoDb(bobId, storage);
+                bob.encryptFromPreKeys(aliceId, aliceKeys[i], bytes);
+                boxes.add(bob);
+            } catch (CryptoException | IOException e) {
+                System.out.println(e);
+            }
+        }
+
+        Date s = new Date();
+        for (CryptoDb bob : boxes) {
             executor.execute(() -> {
                 try {
-                    String bobId = UUID.randomUUID().toString();
-                    try (CryptoDb bob = new CryptoDb(bobId, storage)) {
-                        bob.encryptFromPreKeys(aliceId, aliceKeys[0], bytes);
-                        bob.encryptFromSession(aliceId, bytes);
-                        bob.close();
-                    }
+                    bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
                 } catch (CryptoException | IOException e) {
                     System.out.println(e);
                 }
             });
         }
-
-        Date s = new Date();
         executor.shutdown();
         executor.awaitTermination(60, TimeUnit.SECONDS);
 
         Date e = new Date();
         long delta = e.getTime() - s.getTime();
-        elapse.getAndAdd(delta);
 
-        System.out.printf("testConcurrentMultipleSessions: Count: %,d,  Elapsed: %,d ms\n", counter.get(), elapse.get());
+        System.out.printf("testConcurrentMultipleSessions: Count: %,d,  Elapsed: %,d ms, avg: %.1f/sec\n",
+                counter.get(), delta, (count * 1000f) / delta);
 
         alice.close();
+        for (CryptoDb bob : boxes) {
+            bob.close();
+        }
     }
 }

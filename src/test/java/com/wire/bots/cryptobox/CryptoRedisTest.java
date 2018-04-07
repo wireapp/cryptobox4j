@@ -1,6 +1,7 @@
 package com.wire.bots.cryptobox;
 
 
+import com.wire.bots.cryptobox.storage.RedisStorage;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,30 +16,28 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class CryptoboxTest {
-    private final static String bobId;
-    private final static String aliceId;
-    private static CryptoBox alice;
-    private static CryptoBox bob;
+public class CryptoRedisTest {
+    private static String bobId;
+    private static String aliceId;
+    private static CryptoDb alice;
+    private static CryptoDb bob;
     private static PreKey[] bobKeys;
     private static PreKey[] aliceKeys;
-
-    static {
-        Random rnd = new Random();
-        aliceId = "" + rnd.nextInt();
-        bobId = "" + rnd.nextInt();
-    }
+    private static RedisStorage storage;
+    final Random random = new Random();
 
     @BeforeClass
     public static void setUp() throws Exception {
-        String alicePath = String.format("data/%s", aliceId);
-        String bobPath = String.format("data/%s", bobId);
+        Random random = new Random();
+        aliceId = "" + random.nextInt();
+        bobId = "" + random.nextInt();
 
-        alice = CryptoBox.open(alicePath);
-        bob = CryptoBox.open(bobPath);
+        storage = new RedisStorage("localhost");
+        alice = new CryptoDb(aliceId, storage);
+        bob = new CryptoDb(bobId, storage);
 
-        bobKeys = bob.newPreKeys(0, 8);
-        aliceKeys = alice.newPreKeys(0, 8);
+        bobKeys = bob.newPreKeys(0, 1);
+        aliceKeys = alice.newPreKeys(0, 1);
     }
 
     @AfterClass
@@ -90,7 +89,66 @@ public class CryptoboxTest {
     }
 
     @Test
-    public void testMassiveSessions() throws Exception {
+    public void testIdentity() throws Exception {
+        final String carlId = randomId();
+        final String carlDir = "data/" + carlId;
+
+        CryptoDb carl = new CryptoDb(carlId, storage);
+        final PreKey[] carlPrekeys = carl.newPreKeys(0, 8);
+
+        final String daveId = randomId();
+        final String daveDir = "data/" + daveId;
+        CryptoDb dave = new CryptoDb(daveId, storage);
+        final PreKey[] davePrekeys = dave.newPreKeys(0, 8);
+
+        final String text = "Hello Bob, This is Carl!";
+
+        // Encrypt using prekeys
+        byte[] cipher = dave.encryptFromPreKeys(carlId, carlPrekeys[0], text.getBytes());
+        byte[] decrypt = carl.decrypt(daveId, cipher);
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
+        dave.close();
+        Util.deleteDir(carlDir);
+        Util.deleteDir(daveDir);
+
+        dave = new CryptoDb(daveId, storage);
+        carl = new CryptoDb(carlId, storage);
+        cipher = dave.encryptFromSession(carlId, text.getBytes());
+        decrypt = carl.decrypt(daveId, cipher);
+
+        assert Arrays.equals(decrypt, text.getBytes());
+        assert text.equals(new String(decrypt));
+
+        carl.close();
+        dave.close();
+//        Util.deleteDir(carlDir);
+//        Util.deleteDir(daveDir);
+//
+//        carl = new CryptoDb(carlId, storage);
+//        dave = new CryptoDb(daveId, storage);
+//
+//        cipher = carl.encryptFromPreKeys(daveId, davePrekeys[1], text.getBytes());
+//        decrypt = dave.decrypt(carlId, cipher);
+//        assert Arrays.equals(decrypt, text.getBytes());
+//        assert text.equals(new String(decrypt));
+//
+//        carl.close();
+//        dave.close();
+    }
+
+    private String randomId() {
+        int rnd;
+        while ((rnd = random.nextInt()) < 0)
+            ;
+        return "" + rnd;
+    }
+
+    @Test
+    public void testSynchronousSingleSession() throws Exception {
+        Date s = new Date();
         for (int i = 0; i < 100; i++) {
             String text = "Hello Alice, This is Bob, again! " + i;
 
@@ -112,6 +170,38 @@ public class CryptoboxTest {
             assert Arrays.equals(decrypt, text.getBytes());
             assert text.equals(new String(decrypt));
         }
+        Date e = new Date();
+        long delta = e.getTime() - s.getTime();
+
+        System.out.printf("Count: %,d,  Elapsed: %,d ms\n", 100, delta);
+    }
+
+    @Test
+    public void testConcurrentSingleSession() throws Exception {
+        final String text = "Hello Alice, This is Bob, again! ";
+
+        bob.encryptFromPreKeys(aliceId, aliceKeys[0], text.getBytes());
+
+        ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(4);
+        final AtomicInteger counter = new AtomicInteger(0);
+
+        for (int i = 0; i < 100; i++) {
+            executor.execute(() -> {
+                try {
+                    bob.encryptFromSession(aliceId, text.getBytes());
+                    counter.getAndIncrement();
+                } catch (CryptoException | IOException e) {
+                    System.out.println("testConcurrentSessions: " + e.toString());
+                }
+            });
+        }
+        Date s = new Date();
+        executor.shutdown();
+        executor.awaitTermination(60, TimeUnit.SECONDS);
+        Date e = new Date();
+        long delta = e.getTime() - s.getTime();
+
+        System.out.printf("Count: %,d,  Elapsed: %,d ms\n", counter.get(), delta);
     }
 
     @Test
@@ -119,7 +209,7 @@ public class CryptoboxTest {
         final int count = 1000;
         Random random = new Random();
         String aliceId = "" + random.nextInt();
-        CryptoBox alice = CryptoBox.open("data/" + aliceId);
+        CryptoDb alice = new CryptoDb(aliceId, storage);
         PreKey[] aliceKeys = alice.newPreKeys(0, count);
 
         final AtomicInteger counter = new AtomicInteger(0);
@@ -128,24 +218,23 @@ public class CryptoboxTest {
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello " +
                 "Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello ").getBytes();
 
-
-        ArrayList<CryptoBox> boxes = new ArrayList<>();
+        ArrayList<CryptoDb> boxes = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
             String bobId = "" + random.nextInt();
-            CryptoBox bob = CryptoBox.open("data/" + bobId);
+            CryptoDb bob = new CryptoDb(bobId, storage);
             bob.encryptFromPreKeys(aliceId, aliceKeys[i], bytes);
             boxes.add(bob);
         }
 
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
         Date s = new Date();
-        for (CryptoBox bob : boxes) {
+        for (CryptoDb bob : boxes) {
             executor.execute(() -> {
                 try {
                     bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
-                } catch (CryptoException e) {
+                } catch (CryptoException | IOException e) {
                     System.out.println("testConcurrentDifferentCBSessions: " + e.toString());
                 }
             });
@@ -160,7 +249,7 @@ public class CryptoboxTest {
         System.out.printf("testConcurrentMultipleSessions: Count: %,d,  Elapsed: %,d ms, avg: %.1f/sec\n",
                 counter.get(), delta, (count * 1000f) / delta);
 
-        for (CryptoBox bob : boxes) {
+        for (CryptoDb bob : boxes) {
             bob.close();
         }
         alice.close();
