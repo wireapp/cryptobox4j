@@ -24,33 +24,31 @@ public class RedisStorage implements IStorage {
 
     @Override
     public IRecord fetchSession(String id, String sid) {
-        try (Jedis jedis = getDB()) {
-            String key = key(id, sid);
-            byte[] data = jedis.getSet(key.getBytes(), EMPTY);
-            if (data == null) {
-                System.out.printf("fetch   key: %s size: %d\n", key, 0);
-                return new Record(key, null);
-            }
-
-            for (int i = 0; i < 1000 && data.length == 0; i++) {
-                sleep(1);
-                data = jedis.getSet(key.getBytes(), EMPTY);
-            }
-
-            if (data.length == 0) {
-                System.out.printf("fetch   key: %s size: %d -- Timeout --\n", key, data.length);
-                return new Record(key, null);
-            }
-
-            System.out.printf("fetch   key: %s size: %d\n", key, data.length);
-            jedis.save();
-            return new Record(key, data);
+        Jedis jedis = getConnection();
+        String key = key(id, sid);
+        byte[] data = jedis.getSet(key.getBytes(), EMPTY);
+        if (data == null) {
+            //System.out.printf("fetch   key: %s size: %d\n", key, 0);
+            return new Record(key, null, jedis);
         }
+
+        for (int i = 0; i < 1000 && data.length == 0; i++) {
+            sleep(5);
+            data = jedis.getSet(key.getBytes(), EMPTY);
+        }
+
+        if (data.length == 0) {
+            System.out.printf("fetch   key: %s size: %d -- Timeout --\n", key, data.length);
+            return new Record(key, null, jedis);
+        }
+
+        //System.out.printf("fetch   key: %s size: %d\n", key, data.length);
+        return new Record(key, data, jedis);
     }
 
     @Override
     public byte[] fetchIdentity(String id) {
-        try (Jedis jedis = getDB()) {
+        try (Jedis jedis = getConnection()) {
             String key = String.format("id_%s", id);
             return jedis.get(key.getBytes());
         }
@@ -58,7 +56,7 @@ public class RedisStorage implements IStorage {
 
     @Override
     public void insertIdentity(String id, byte[] data) {
-        try (Jedis jedis = getDB()) {
+        try (Jedis jedis = getConnection()) {
             String key = String.format("id_%s", id);
             jedis.set(key.getBytes(), data);
         }
@@ -66,7 +64,7 @@ public class RedisStorage implements IStorage {
 
     @Override
     public PreKey[] fetchPrekeys(String id) {
-        try (Jedis jedis = getDB()) {
+        try (Jedis jedis = getConnection()) {
 
             String key = String.format("pk_%s", id);
             Long llen = jedis.llen(key);
@@ -81,7 +79,7 @@ public class RedisStorage implements IStorage {
 
     @Override
     public void insertPrekey(String id, int kid, byte[] data) {
-        try (Jedis jedis = getDB()) {
+        try (Jedis jedis = getConnection()) {
             String key = String.format("pk_%s", id);
             jedis.lpush(key.getBytes(), data);
         }
@@ -113,17 +111,19 @@ public class RedisStorage implements IStorage {
         return poolConfig;
     }
 
-    private Jedis getDB() {
+    private Jedis getConnection() {
         return pool.getResource();
     }
 
     private class Record implements IRecord {
         private final String key;
-        public byte[] data;
+        private final byte[] data;
+        private final Jedis jedis;
 
-        Record(String key, byte[] data) {
+        Record(String key, byte[] data, Jedis jedis) {
             this.key = key;
             this.data = data;
+            this.jedis = jedis;
         }
 
         @Override
@@ -133,10 +133,9 @@ public class RedisStorage implements IStorage {
 
         @Override
         public void persist(byte[] data) {
-            try (Jedis jedis = getDB()) {
-                jedis.set(key.getBytes(), data);
-                System.out.printf("persist key: %s size: %d\n", key, data.length);
-            }
+            jedis.set(key.getBytes(), data);
+            //System.out.printf("persist key: %s size: %d\n", key, data.length);
+            jedis.close();
         }
     }
 }

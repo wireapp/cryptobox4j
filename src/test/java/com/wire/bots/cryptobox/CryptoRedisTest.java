@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CryptoRedisTest {
+    private static final Random random = new Random();
     private static String bobId;
     private static String aliceId;
     private static CryptoDb alice;
@@ -24,13 +25,11 @@ public class CryptoRedisTest {
     private static PreKey[] bobKeys;
     private static PreKey[] aliceKeys;
     private static RedisStorage storage;
-    final Random random = new Random();
 
     @BeforeClass
     public static void setUp() throws Exception {
-        Random random = new Random();
-        aliceId = "" + random.nextInt();
-        bobId = "" + random.nextInt();
+        aliceId = randomId();
+        bobId = randomId();
 
         storage = new RedisStorage("localhost");
         alice = new CryptoDb(aliceId, storage);
@@ -46,6 +45,13 @@ public class CryptoRedisTest {
         bob.close();
 
         Util.deleteDir("data");
+    }
+
+    private static String randomId() {
+        int rnd;
+        while ((rnd = random.nextInt()) < 0)
+            ;
+        return "" + rnd;
     }
 
     @Test
@@ -124,26 +130,6 @@ public class CryptoRedisTest {
 
         carl.close();
         dave.close();
-//        Util.deleteDir(carlDir);
-//        Util.deleteDir(daveDir);
-//
-//        carl = new CryptoDb(carlId, storage);
-//        dave = new CryptoDb(daveId, storage);
-//
-//        cipher = carl.encryptFromPreKeys(daveId, davePrekeys[1], text.getBytes());
-//        decrypt = dave.decrypt(carlId, cipher);
-//        assert Arrays.equals(decrypt, text.getBytes());
-//        assert text.equals(new String(decrypt));
-//
-//        carl.close();
-//        dave.close();
-    }
-
-    private String randomId() {
-        int rnd;
-        while ((rnd = random.nextInt()) < 0)
-            ;
-        return "" + rnd;
     }
 
     @Test
@@ -207,8 +193,7 @@ public class CryptoRedisTest {
     @Test
     public void testConcurrentMultipleSessions() throws Exception {
         final int count = 1000;
-        Random random = new Random();
-        String aliceId = "" + random.nextInt();
+        String aliceId = randomId();
         CryptoDb alice = new CryptoDb(aliceId, storage);
         PreKey[] aliceKeys = alice.newPreKeys(0, count);
 
@@ -221,7 +206,7 @@ public class CryptoRedisTest {
         ArrayList<CryptoDb> boxes = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
-            String bobId = "" + random.nextInt();
+            String bobId = randomId();
             CryptoDb bob = new CryptoDb(bobId, storage);
             bob.encryptFromPreKeys(aliceId, aliceKeys[i], bytes);
             boxes.add(bob);

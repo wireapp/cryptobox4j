@@ -63,12 +63,12 @@ public class MemStorage implements IStorage {
     }
 
     private class Record implements IRecord {
-        private final String key;
-        public byte[] data;
         boolean locked;
+        //private final String key;
+        private byte[] data;
 
         Record(String key, byte[] data) {
-            this.key = key;
+            //this.key = key;
             this.data = data;
         }
 
