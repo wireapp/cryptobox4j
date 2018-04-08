@@ -14,6 +14,10 @@ public class RedisStorage implements IStorage {
     private final JedisPoolConfig poolConfig = buildPoolConfig();
     private final JedisPool pool;
 
+    public RedisStorage(String host, int port, String password) {
+        pool = new JedisPool(poolConfig, host, port, 5000, password);
+    }
+
     public RedisStorage(String host, int port) {
         pool = new JedisPool(poolConfig, host, port);
     }
