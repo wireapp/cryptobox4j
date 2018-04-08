@@ -3,6 +3,7 @@ package com.wire.bots.cryptobox.storage;
 import com.wire.bots.cryptobox.IRecord;
 import com.wire.bots.cryptobox.IStorage;
 import com.wire.bots.cryptobox.PreKey;
+import com.wire.bots.cryptobox.StorageException;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -11,15 +12,16 @@ import java.time.Duration;
 
 public class RedisStorage implements IStorage {
     private static final byte[] EMPTY = new byte[0];
+    private static final int TIMEOUT = 5000;
     private final JedisPoolConfig poolConfig = buildPoolConfig();
     private final JedisPool pool;
 
     public RedisStorage(String host, int port, String password) {
-        pool = new JedisPool(poolConfig, host, port, 5000, password);
+        pool = new JedisPool(poolConfig, host, port, TIMEOUT, password);
     }
 
     public RedisStorage(String host, int port) {
-        pool = new JedisPool(poolConfig, host, port);
+        pool = new JedisPool(poolConfig, host, port, TIMEOUT);
     }
 
     public RedisStorage(String host) {
@@ -27,12 +29,12 @@ public class RedisStorage implements IStorage {
     }
 
     @Override
-    public IRecord fetchSession(String id, String sid) {
+    public IRecord fetchSession(String id, String sid) throws StorageException {
         Jedis jedis = getConnection();
         String key = key(id, sid);
         byte[] data = jedis.getSet(key.getBytes(), EMPTY);
         if (data == null) {
-            //System.out.printf("fetch   key: %s size: %d\n", key, 0);
+            System.out.printf("fetch   key: %s size: %d\n", key, 0);
             return new Record(key, null, jedis);
         }
 
@@ -42,11 +44,10 @@ public class RedisStorage implements IStorage {
         }
 
         if (data.length == 0) {
-            System.out.printf("fetch   key: %s size: %d -- Timeout --\n", key, data.length);
-            return new Record(key, null, jedis);
+            throw new StorageException("Redis Timeout when fetching Session with key: " + key);
         }
 
-        //System.out.printf("fetch   key: %s size: %d\n", key, data.length);
+        System.out.printf("fetch   key: %s size: %d\n", key, data.length);
         return new Record(key, data, jedis);
     }
 

@@ -59,7 +59,7 @@ public class CryptoMemoryConcurrentTest {
 
                     byte[] cipher = bob.encryptFromSession(aliceId, text.getBytes());
                     alice.decrypt(bobId, cipher);
-                } catch (CryptoException | IOException e) {
+                } catch (Exception e) {
                     System.out.println(e);
                 }
             });

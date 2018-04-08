@@ -176,7 +176,7 @@ public class CryptoPostgresTest {
                 try {
                     bob.encryptFromSession(aliceId, text.getBytes());
                     counter.getAndIncrement();
-                } catch (CryptoException | IOException e) {
+                } catch (Exception e) {
                     System.out.println("testConcurrentSessions: " + e.toString());
                 }
             });
@@ -221,7 +221,7 @@ public class CryptoPostgresTest {
                 try {
                     bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
-                } catch (CryptoException | IOException e) {
+                } catch (Exception e) {
                     System.out.println("testConcurrentDifferentCBSessions: " + e.toString());
                 }
             });

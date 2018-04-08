@@ -12,7 +12,7 @@ public class CryptoDb implements ICryptobox {
     private final IStorage storage;
     private final String root;
 
-    public CryptoDb(String id, IStorage storage) throws CryptoException, IOException {
+    public CryptoDb(String id, IStorage storage) throws Exception {
         this.id = id;
         this.storage = storage;
         this.root = String.format("%s/%s", DATA, id);
@@ -30,7 +30,7 @@ public class CryptoDb implements ICryptobox {
     }
 
     @Override
-    public PreKey[] newPreKeys(int start, int num) throws CryptoException, IOException {
+    public PreKey[] newPreKeys(int start, int num) throws Exception {
         PreKey[] preKeys = box.newPreKeys(start, num);
         for (int i = 0; i < num; i++) {
             int kid = start + i;
@@ -40,7 +40,7 @@ public class CryptoDb implements ICryptobox {
     }
 
     @Override
-    public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException, IOException {
+    public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws Exception {
         IRecord record = begin(sid);
         try {
             return box.encryptFromPreKeys(sid, preKey, content);
@@ -50,7 +50,7 @@ public class CryptoDb implements ICryptobox {
     }
 
     @Override
-    public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException, IOException {
+    public byte[] encryptFromSession(String sid, byte[] content) throws Exception {
         IRecord record = begin(sid);
         try {
             return box.encryptFromSession(sid, content);
@@ -60,7 +60,7 @@ public class CryptoDb implements ICryptobox {
     }
 
     @Override
-    public byte[] decrypt(String sid, byte[] decode) throws CryptoException, IOException {
+    public byte[] decrypt(String sid, byte[] decode) throws Exception {
         IRecord record = begin(sid);
         try {
             return box.decrypt(sid, decode);
@@ -69,7 +69,7 @@ public class CryptoDb implements ICryptobox {
         }
     }
 
-    private IRecord begin(String sid) throws IOException {
+    private IRecord begin(String sid) throws Exception {
         IRecord record = storage.fetchSession(id, sid);
         if (record != null) {
             writeSession(sid, record.getData());

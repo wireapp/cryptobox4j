@@ -55,7 +55,7 @@ public class CryptoMemoryVolumeTest {
                 try {
                     bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
-                } catch (CryptoException | IOException e) {
+                } catch (Exception e) {
                     System.out.println(e);
                 }
             });

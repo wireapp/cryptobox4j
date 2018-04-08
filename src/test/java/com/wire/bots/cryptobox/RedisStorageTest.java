@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class RedisStorageTest {
     @Test
-    public void test() {
+    public void test() throws StorageException {
         RedisStorage storage = new RedisStorage("localhost");
         Random random = new Random();
         String id = "" + random.nextInt();

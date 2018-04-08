@@ -31,7 +31,7 @@ public class CryptoRedisTest {
         aliceId = randomId();
         bobId = randomId();
 
-        storage = new RedisStorage("localhost");
+        storage = new RedisStorage("localhost", 6379);
         alice = new CryptoDb(aliceId, storage);
         bob = new CryptoDb(bobId, storage);
 
@@ -176,7 +176,7 @@ public class CryptoRedisTest {
                 try {
                     bob.encryptFromSession(aliceId, text.getBytes());
                     counter.getAndIncrement();
-                } catch (CryptoException | IOException e) {
+                } catch (Exception e) {
                     System.out.println("testConcurrentSessions: " + e.toString());
                 }
             });
@@ -219,7 +219,7 @@ public class CryptoRedisTest {
                 try {
                     bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
-                } catch (CryptoException | IOException e) {
+                } catch (Exception e) {
                     System.out.println("testConcurrentDifferentCBSessions: " + e.toString());
                 }
             });
