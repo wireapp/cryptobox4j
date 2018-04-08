@@ -1,7 +1,6 @@
 package com.wire.bots.cryptobox;
 
 
-import com.wire.bots.cryptobox.storage.MemStorage;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

@@ -1,8 +1,4 @@
-package com.wire.bots.cryptobox.storage;
-
-import com.wire.bots.cryptobox.IRecord;
-import com.wire.bots.cryptobox.IStorage;
-import com.wire.bots.cryptobox.PreKey;
+package com.wire.bots.cryptobox;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
