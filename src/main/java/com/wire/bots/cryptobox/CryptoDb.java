@@ -79,10 +79,8 @@ public class CryptoDb implements ICryptobox {
 
     private void end(String sid, IRecord record) throws IOException {
         byte[] b = readSession(sid);
-        if (b != null) {
-            if (record != null)
-                record.persist(b);
-        }
+        if (record != null)
+            record.persist(b);
     }
 
     private void writeSession(String sid, byte[] session) throws IOException {
