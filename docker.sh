@@ -2,5 +2,5 @@
 
 NAME="bots.runtime"
 
-docker build -t dejankovacevic/$NAME:2.10.1 .
-docker push dejankovacevic/$NAME
+docker build -t $DOCKER_USERNAME/$NAME:2.10.2 .
+docker push $DOCKER_USERNAME/$NAME
