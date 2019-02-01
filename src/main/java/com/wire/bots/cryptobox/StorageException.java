@@ -1,6 +1,8 @@
 package com.wire.bots.cryptobox;
 
-public class StorageException extends Exception {
+import java.io.IOException;
+
+public class StorageException extends IOException {
     public StorageException(String message) {
         super(message);
     }

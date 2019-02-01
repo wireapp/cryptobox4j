@@ -3,15 +3,15 @@ package com.wire.bots.cryptobox;
 import java.io.Closeable;
 
 public interface ICryptobox extends Closeable {
-    PreKey newLastPreKey() throws Exception;
+    PreKey newLastPreKey() throws CryptoException;
 
-    PreKey[] newPreKeys(int start, int num) throws Exception;
+    PreKey[] newPreKeys(int start, int num) throws CryptoException;
 
-    byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws Exception;
+    byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException;
 
-    byte[] encryptFromSession(String sid, byte[] content) throws Exception;
+    byte[] encryptFromSession(String sid, byte[] content) throws CryptoException;
 
-    byte[] decrypt(String sid, byte[] decode) throws Exception;
+    byte[] decrypt(String sid, byte[] decode) throws CryptoException;
 
     void close();
 

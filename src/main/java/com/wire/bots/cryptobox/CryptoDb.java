@@ -12,7 +12,7 @@ public class CryptoDb implements ICryptobox {
     private final IStorage storage;
     private final String root;
 
-    public CryptoDb(String id, IStorage storage) throws Exception {
+    public CryptoDb(String id, IStorage storage) throws IOException, CryptoException {
         this.id = id;
         this.storage = storage;
         this.root = String.format("%s/%s", DATA, id);
@@ -30,46 +30,59 @@ public class CryptoDb implements ICryptobox {
     }
 
     @Override
-    public PreKey[] newPreKeys(int start, int num) throws Exception {
-        PreKey[] preKeys = box.newPreKeys(start, num);
-        for (int i = 0; i < num; i++) {
-            int kid = start + i;
-            storage.insertPrekey(id, kid, readPrekey(kid));
-        }
-        return preKeys;
-    }
-
-    @Override
-    public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws Exception {
-        IRecord record = begin(sid);
+    public PreKey[] newPreKeys(int start, int num) throws CryptoException {
         try {
-            return box.encryptFromPreKeys(sid, preKey, content);
-        } finally {
-            end(sid, record);
+            PreKey[] preKeys = box.newPreKeys(start, num);
+            persistPreKeys(start, num);
+            return preKeys;
+        } catch (IOException e) {
+            throw new CryptoException(e);
         }
     }
 
     @Override
-    public byte[] encryptFromSession(String sid, byte[] content) throws Exception {
-        IRecord record = begin(sid);
+    public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException {
         try {
-            return box.encryptFromSession(sid, content);
-        } finally {
-            end(sid, record);
+            IRecord record = begin(sid);
+            try {
+                return box.encryptFromPreKeys(sid, preKey, content);
+            } finally {
+                end(sid, record);
+            }
+        } catch (IOException e) {
+            throw new CryptoException(e);
         }
     }
 
     @Override
-    public byte[] decrypt(String sid, byte[] decode) throws Exception {
-        IRecord record = begin(sid);
+    public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException {
         try {
-            return box.decrypt(sid, decode);
-        } finally {
-            end(sid, record);
+            IRecord record = begin(sid);
+            try {
+                return box.encryptFromSession(sid, content);
+            } finally {
+                end(sid, record);
+            }
+        } catch (IOException e) {
+            throw new CryptoException(e);
         }
     }
 
-    private IRecord begin(String sid) throws Exception {
+    @Override
+    public byte[] decrypt(String sid, byte[] decode) throws CryptoException {
+        try {
+            IRecord record = begin(sid);
+            try {
+                return box.decrypt(sid, decode);
+            } finally {
+                end(sid, record);
+            }
+        } catch (IOException e) {
+            throw new CryptoException(e);
+        }
+    }
+
+    private IRecord begin(String sid) throws IOException {
         IRecord record = storage.fetchSession(id, sid);
         if (record != null) {
             writeSession(sid, record.getData());
@@ -125,6 +138,14 @@ public class CryptoDb implements ICryptobox {
                 Files.createDirectories(path.getParent());
                 Files.write(path, preKey.data);
             }
+        }
+    }
+
+    private void persistPreKeys(int start, int num) throws IOException {
+        for (int i = 0; i < num; i++) {
+            int kid = start + i;
+            byte[] data = readPrekey(kid);
+            storage.insertPrekey(id, kid, data);
         }
     }
 

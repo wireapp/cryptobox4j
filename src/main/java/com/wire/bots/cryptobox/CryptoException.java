@@ -27,29 +27,50 @@ final public class CryptoException extends Exception {
         this.code = code;
     }
 
+    public CryptoException(Throwable cause) {
+        super(cause);
+        code = Code.UNKNOWN_ERROR;
+    }
+
     private static Code fromNativeCode(int code) {
         switch (code) {
-            case  1: return Code.STORAGE_ERROR;
-            case  2: return Code.SESSION_NOT_FOUND;
-            case  3: return Code.DECODE_ERROR;
-            case  4: return Code.REMOTE_IDENTITY_CHANGED;
-            case  5: return Code.INVALID_SIGNATURE;
-            case  6: return Code.INVALID_MESSAGE;
-            case  7: return Code.DUPLICATE_MESSAGE;
-            case  8: return Code.TOO_DISTANT_FUTURE;
-            case  9: return Code.OUTDATED_MESSAGE;
-            case 13: return Code.IDENTITY_ERROR;
-            case 14: return Code.PREKEY_NOT_FOUND;
-            case 15: return Code.PANIC;
-            default: return Code.UNKNOWN_ERROR;
+            case 1:
+                return Code.STORAGE_ERROR;
+            case 2:
+                return Code.SESSION_NOT_FOUND;
+            case 3:
+                return Code.DECODE_ERROR;
+            case 4:
+                return Code.REMOTE_IDENTITY_CHANGED;
+            case 5:
+                return Code.INVALID_SIGNATURE;
+            case 6:
+                return Code.INVALID_MESSAGE;
+            case 7:
+                return Code.DUPLICATE_MESSAGE;
+            case 8:
+                return Code.TOO_DISTANT_FUTURE;
+            case 9:
+                return Code.OUTDATED_MESSAGE;
+            case 13:
+                return Code.IDENTITY_ERROR;
+            case 14:
+                return Code.PREKEY_NOT_FOUND;
+            case 15:
+                return Code.PANIC;
+            default:
+                return Code.UNKNOWN_ERROR;
         }
     }
 
     public enum Code {
-        /** A requested session was not found. */
+        /**
+         * A requested session was not found.
+         */
         SESSION_NOT_FOUND,
 
-        /** The remote identity of a session changed.
+        /**
+         * The remote identity of a session changed.
          *
          * <p>Usually the user should be informed and the session reinitialised.
          * If the remote fingerprint was previously verified, it will need to be
@@ -57,14 +78,16 @@ final public class CryptoException extends Exception {
          */
         REMOTE_IDENTITY_CHANGED,
 
-        /** The signature of a decrypted message is invalid.
+        /**
+         * The signature of a decrypted message is invalid.
          *
          * <p>The message being decrypted is incomplete or has otherwise been
          * tampered with.</p>
          */
         INVALID_SIGNATURE,
 
-        /** A message is invalid.
+        /**
+         * A message is invalid.
          *
          * <p>The message is well-formed but cannot be decrypted, e.g.
          * because the message is used to initialise a session but does not
@@ -75,7 +98,8 @@ final public class CryptoException extends Exception {
          */
         INVALID_MESSAGE,
 
-        /** A message is a duplicate.
+        /**
+         * A message is a duplicate.
          *
          * <p>The message being decrypted is a duplicate of a message that has
          * previously been decrypted with the same session. The message can
@@ -83,7 +107,8 @@ final public class CryptoException extends Exception {
          */
         DUPLICATE_MESSAGE,
 
-        /** A message is too recent.
+        /**
+         * A message is too recent.
          *
          * <p>There is an unreasonably large gap between the last decrypted
          * message and the message being decrypted, i.e. there are too many
@@ -91,7 +116,8 @@ final public class CryptoException extends Exception {
          */
         TOO_DISTANT_FUTURE,
 
-        /** A message is too old.
+        /**
+         * A message is too old.
          *
          * <p>The message being decrypted is unreasonably old and cannot
          * be decrypted any longer due to the key material no longer being available.
@@ -99,33 +125,38 @@ final public class CryptoException extends Exception {
          */
         OUTDATED_MESSAGE,
 
-        /** A message or key could not be decoded.
+        /**
+         * A message or key could not be decoded.
          *
          * <p>The message or key being decoded is either malformed or
          * otherwise encoded in a way such it cannot be understood.</p>
          */
         DECODE_ERROR,
 
-        /** An internal storage error occurred.
+        /**
+         * An internal storage error occurred.
          *
          * <p>An error occurred while loading or persisting key material.
          * The operation may be retried a limited number of times.</p>
          */
         STORAGE_ERROR,
 
-        /** A CBox has been opened with an incomplete or mismatching identity
+        /**
+         * A CBox has been opened with an incomplete or mismatching identity
          * using {@link CryptoBox#openWith}.
          *
          * <p>This is typically a programmer error.</p>
          */
         IDENTITY_ERROR,
 
-        /** An attempt was made to initialise a new session using {@link CryptoBox#initSessionFromMessage}
+        /**
+         * An attempt was made to initialise a new session using {@link CryptoBox#initSessionFromMessage}
          * whereby the prekey corresponding to the prekey ID in the message could not be found.
          */
         PREKEY_NOT_FOUND,
 
-        /** A panic occurred. This is a last resort error raised form native code to
+        /**
+         * A panic occurred. This is a last resort error raised form native code to
          * signal a severe problem, like a violation of a critical invariant, that
          * would otherwise have caused a crash. Client code can choose to handle
          * these errors more gracefully, preventing the application from crashing.
@@ -137,7 +168,9 @@ final public class CryptoException extends Exception {
          */
         PANIC,
 
-        /** An unspecified error occurred. */
+        /**
+         * An unspecified error occurred.
+         */
         UNKNOWN_ERROR
     }
 }
