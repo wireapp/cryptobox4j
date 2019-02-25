@@ -9,7 +9,8 @@ RUN apt-get update \
     && apt-get install libxdamage-dev  -qqy --no-install-recommends \
     && apt-get install libxrender-dev  -qqy --no-install-recommends \
     && apt-get install libevent-dev  -qqy --no-install-recommends \
-    && apt-get install libc++-dev  -qqy --no-install-recommends
+    && apt-get install libc++-dev  -qqy --no-install-recommends \
+    && apt-get install curl -qqy --no-install-recommends
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
