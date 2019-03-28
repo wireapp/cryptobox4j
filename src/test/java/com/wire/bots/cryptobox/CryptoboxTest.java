@@ -61,6 +61,17 @@ public class CryptoboxTest {
 
         assert Arrays.equals(decrypt, text.getBytes());
         assert text.equals(new String(decrypt));
+
+        for (int i = 0; i < 10; i++) {
+            // Encrypt using session
+            cipher = alice.encryptFromSession(bobId, text.getBytes());
+
+            // Decrypt using session
+            decrypt = bob.decrypt(aliceId, cipher);
+
+            assert Arrays.equals(decrypt, text.getBytes());
+            assert text.equals(new String(decrypt));
+        }
     }
 
     @Test
@@ -70,19 +81,6 @@ public class CryptoboxTest {
         byte[] cipher = bob.encryptFromPreKeys(aliceId, aliceKeys[0], text.getBytes());
 
         // Decrypt using initSessionFromMessage
-        byte[] decrypt = alice.decrypt(bobId, cipher);
-
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
-    }
-
-    @Test
-    public void testSessions() throws Exception {
-        String text = "Hello Alice, This is Bob, again!";
-
-        byte[] cipher = bob.encryptFromSession(aliceId, text.getBytes());
-
-        // Decrypt using session
         byte[] decrypt = alice.decrypt(bobId, cipher);
 
         assert Arrays.equals(decrypt, text.getBytes());

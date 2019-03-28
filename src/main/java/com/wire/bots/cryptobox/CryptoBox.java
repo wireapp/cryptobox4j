@@ -188,8 +188,9 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException {
-        CryptoSession cryptoSession = initSessionFromPreKey(sid, preKey);
-        return cryptoSession.encrypt(content);
+        try (CryptoSession cryptoSession = initSessionFromPreKey(sid, preKey)) {
+            return cryptoSession.encrypt(content);
+        }
     }
 
     /**
@@ -202,9 +203,10 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException {
-        CryptoSession session = tryGetSession(sid);
-        if (session != null) {
-            return session.encrypt(content);
+        try (CryptoSession session = tryGetSession(sid)) {
+            if (session != null) {
+                return session.encrypt(content);
+            }
         }
         return null;
     }
@@ -213,17 +215,19 @@ final public class CryptoBox implements ICryptobox {
      * Decrypt cipher either using existing session or it creates new session from this cipher and decrypts
      *
      * @param sid    Session Id
-     * @param decode cipher
+     * @param cipher cipher
      * @return Decrypted bytes
      * @throws CryptoException throws Exception
      */
     @Override
-    public byte[] decrypt(String sid, byte[] decode) throws CryptoException {
-        CryptoSession cryptoSession = tryGetSession(sid);
-        if (cryptoSession != null) {
-            return cryptoSession.decrypt(decode);
+    public byte[] decrypt(String sid, byte[] cipher) throws CryptoException {
+        try (CryptoSession cryptoSession = tryGetSession(sid)) {
+            if (cryptoSession != null) {
+                return cryptoSession.decrypt(cipher);
+            }
         }
-        try (SessionMessage sessionMessage = initSessionFromMessage(sid, decode)) {
+
+        try (SessionMessage sessionMessage = initSessionFromMessage(sid, cipher)) {
             return sessionMessage.getMessage();
         }
     }

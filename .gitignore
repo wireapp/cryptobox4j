@@ -6,3 +6,4 @@ cryptobox4J.iml
 data/
 target/
 dist/
+*.log
