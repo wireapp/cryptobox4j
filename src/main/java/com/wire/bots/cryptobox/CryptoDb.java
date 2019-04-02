@@ -13,9 +13,13 @@ public class CryptoDb implements ICryptobox {
     private final String root;
 
     public CryptoDb(String id, IStorage storage) throws IOException, CryptoException {
+        this(id, storage, DATA);
+    }
+
+    public CryptoDb(String id, IStorage storage, String dir) throws IOException, CryptoException {
         this.id = id;
         this.storage = storage;
-        this.root = String.format("%s/%s", DATA, id);
+        this.root = String.format("%s/%s", dir, id);
 
         writeIdentity(storage.fetchIdentity(id));
         writePrekeys(storage.fetchPrekeys(id));
@@ -26,14 +30,21 @@ public class CryptoDb implements ICryptobox {
 
     @Override
     public PreKey newLastPreKey() throws CryptoException {
-        return box.newLastPreKey();
+        try {
+            PreKey preKey = box.newLastPreKey();
+            persistPreKey(preKey.id);
+            return preKey;
+        } catch (IOException e) {
+            throw new CryptoException(e);
+        }
     }
 
     @Override
     public PreKey[] newPreKeys(int start, int num) throws CryptoException {
         try {
             PreKey[] preKeys = box.newPreKeys(start, num);
-            persistPreKeys(start, num);
+            for (PreKey preKey : preKeys)
+                persistPreKey(preKey.id);
             return preKeys;
         } catch (IOException e) {
             throw new CryptoException(e);
@@ -141,12 +152,9 @@ public class CryptoDb implements ICryptobox {
         }
     }
 
-    private void persistPreKeys(int start, int num) throws IOException {
-        for (int i = 0; i < num; i++) {
-            int kid = start + i;
-            byte[] data = readPrekey(kid);
-            storage.insertPrekey(id, kid, data);
-        }
+    private void persistPreKey(int kid) throws IOException {
+        byte[] data = readPrekey(kid);
+        storage.insertPrekey(id, kid, data);
     }
 
     @Override
