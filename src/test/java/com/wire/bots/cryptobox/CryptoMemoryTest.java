@@ -125,7 +125,7 @@ public class CryptoMemoryTest {
 
         carl.close();
         dave.close();
-        //Util.deleteDir(dir);
+        Util.deleteDir(dir);
 
         dave = new CryptoDb(daveId, storage);
         carl = new CryptoDb(carlId, storage);

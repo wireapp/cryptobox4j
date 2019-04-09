@@ -22,6 +22,7 @@ public class CryptoDb implements ICryptobox {
         this.root = String.format("%s/%s", dir, id);
 
         writeIdentity(storage.fetchIdentity(id));
+        writePrekeys(storage.fetchPrekeys(id));
 
         this.box = CryptoBox.open(root);
         storage.insertIdentity(id, readIdentity());
@@ -29,12 +30,25 @@ public class CryptoDb implements ICryptobox {
 
     @Override
     public PreKey newLastPreKey() throws CryptoException {
-        return box.newLastPreKey();
+        try {
+            PreKey preKey = box.newLastPreKey();
+            persistPreKey(preKey.id);
+            return preKey;
+        } catch (IOException e) {
+            throw new CryptoException(e);
+        }
     }
 
     @Override
     public PreKey[] newPreKeys(int start, int num) throws CryptoException {
-        return box.newPreKeys(start, num);
+        try {
+            PreKey[] preKeys = box.newPreKeys(start, num);
+            for (PreKey preKey : preKeys)
+                persistPreKey(preKey.id);
+            return preKeys;
+        } catch (IOException e) {
+            throw new CryptoException(e);
+        }
     }
 
     @Override
@@ -119,6 +133,28 @@ public class CryptoDb implements ICryptobox {
         String file = String.format("%s/identities/local", root);
         Path path = Paths.get(file);
         return Files.exists(path) ? Files.readAllBytes(path) : null;
+    }
+
+    private byte[] readPrekey(int kid) throws IOException {
+        String file = String.format("%s/prekeys/%d", root, kid);
+        Path path = Paths.get(file);
+        return Files.exists(path) ? Files.readAllBytes(path) : null;
+    }
+
+    private void writePrekeys(PreKey[] preKeys) throws IOException {
+        if (preKeys != null) {
+            for (PreKey preKey : preKeys) {
+                String file = String.format("%s/prekeys/%d", root, preKey.id);
+                Path path = Paths.get(file);
+                Files.createDirectories(path.getParent());
+                Files.write(path, preKey.data);
+            }
+        }
+    }
+
+    private void persistPreKey(int kid) throws IOException {
+        byte[] data = readPrekey(kid);
+        storage.insertPrekey(id, kid, data);
     }
 
     @Override
