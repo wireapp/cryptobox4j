@@ -3,6 +3,10 @@ package com.wire.bots.cryptobox;
 import java.io.Closeable;
 
 public interface ICryptobox extends Closeable {
+    byte[] getIdentity() throws CryptoException;
+
+    byte[] getLocalFingerprint() throws CryptoException;
+
     PreKey newLastPreKey() throws CryptoException;
 
     PreKey[] newPreKeys(int start, int num) throws CryptoException;

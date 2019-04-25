@@ -130,7 +130,8 @@ final public class CryptoBox implements ICryptobox {
      * transmitted over a safe channel for subsequent use with
      * {@link CryptoBox#openWith}.
      */
-    public byte[] copyIdentity() throws CryptoException {
+    @Override
+    public byte[] getIdentity() throws CryptoException {
         errorIfClosed();
         return jniCopyIdentity(ptr);
     }
@@ -138,6 +139,7 @@ final public class CryptoBox implements ICryptobox {
     /**
      * Get the local fingerprint as a hex-encoded byte array.
      */
+    @Override
     public byte[] getLocalFingerprint() throws CryptoException {
         errorIfClosed();
         return jniGetLocalFingerprint(ptr);

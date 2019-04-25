@@ -163,4 +163,33 @@ public class CryptoboxTest {
         }
         alice.close();
     }
+
+    private static String hexify(byte bytes[]) {
+        StringBuilder buf = new StringBuilder(bytes.length * 2);
+        for (int i = 0; i < bytes.length; i += 2) {
+            buf.append((char) bytes[i]);
+            buf.append((char) bytes[i + 1]);
+            buf.append(" ");
+        }
+        return buf.toString().trim();
+    }
+
+    private static String encode(byte bytes[]) {
+        char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+        StringBuilder buf = new StringBuilder(bytes.length * 2);
+        for (byte aByte : bytes) {
+            buf.append(hexDigits[(aByte & 0xf0) >> 4]);
+            buf.append(hexDigits[aByte & 0x0f]);
+        }
+        return buf.toString();
+    }
+
+    @Test
+    public void testFingerprint() throws Exception {
+        byte[] localFingerprint = alice.getLocalFingerprint();
+        byte[] identity = alice.getIdentity();
+        String hexify = hexify(localFingerprint);
+
+        System.out.println(hexify);
+    }
 }

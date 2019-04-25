@@ -29,6 +29,16 @@ public class CryptoDb implements ICryptobox {
     }
 
     @Override
+    public byte[] getIdentity() throws CryptoException {
+        return box.getIdentity();
+    }
+
+    @Override
+    public byte[] getLocalFingerprint() throws CryptoException {
+        return box.getLocalFingerprint();
+    }
+
+    @Override
     public PreKey newLastPreKey() throws CryptoException {
         try {
             PreKey preKey = box.newLastPreKey();
