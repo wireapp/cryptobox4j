@@ -1,9 +1,12 @@
 package com.wire.bots.cryptobox;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 
 public class CryptoDb implements ICryptobox {
     private static final String DATA = "data";
@@ -175,5 +178,15 @@ public class CryptoDb implements ICryptobox {
     @Override
     public boolean isClosed() {
         return box.isClosed();
+    }
+
+    public void purge() throws IOException {
+        box.close();
+        storage.purge(id);
+        Path rootPath = Paths.get(root);
+        Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
     }
 }

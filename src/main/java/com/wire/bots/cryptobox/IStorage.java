@@ -10,4 +10,6 @@ public interface IStorage {
     PreKey[] fetchPrekeys(String id) throws StorageException;
 
     void insertPrekey(String id, int kid, byte[] data) throws StorageException;
+
+    void purge(String id) throws StorageException;
 }

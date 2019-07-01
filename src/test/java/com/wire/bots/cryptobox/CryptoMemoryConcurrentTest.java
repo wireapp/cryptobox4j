@@ -114,6 +114,14 @@ public class CryptoMemoryConcurrentTest {
             preKeys.add(new PreKey(kid, data));
         }
 
+        @Override
+        public void purge(String id) {
+            if (preKeys != null)
+                preKeys.clear();
+            identity = null;
+            record = null;
+        }
+
         private boolean acquire() {
             synchronized (lock) {
                 if (!record.locked) {
