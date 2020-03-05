@@ -20,7 +20,7 @@ clean:
 	rm -f build/lib/libcryptobox-jni.$(LIB_TYPE)
 
 .PHONY: compile
-compile: cryptobox compile-native compile-java
+compile: cryptobox compile-native copy-libs compile-java
 
 .PHONY: compile-native
 compile-native:
@@ -93,3 +93,8 @@ build/lib/libsodium.$(LIB_TYPE): build/src/$(LIBSODIUM)
 ifeq ($(OS), darwin)
 	install_name_tool -id "@loader_path/libsodium.dylib" build/lib/libsodium.dylib
 endif
+
+#############################################################################
+# copy libraries to java home
+copy-libs:
+	cp -r build/lib/* $$JAVA_HOME/lib

@@ -3,6 +3,7 @@
 .idea/
 build/
 cryptobox4J.iml
+cryptobox.iml
 data/
 target/
 dist/
