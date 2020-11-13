@@ -1,7 +1,7 @@
 FROM ubuntu:xenial
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
+RUN apt-get update && apt-get upgrade -y \
     && apt-get install openjdk-8-jre-headless -qqy --no-install-recommends \
     && apt-get install libc++abi-dev -qqy --no-install-recommends \
     && apt-get install protobuf-c-compiler -qqy --no-install-recommends \
