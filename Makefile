@@ -53,7 +53,8 @@ compile-native:
 
 .PHONY: compile-java
 compile-java:
-	(export LD_LIBRARY_PATH="$(pwd)/build/lib" && mvn package)
+	export LD_LIBRARY_PATH="$$PWD/build/lib"; \
+	mvn package -DargLine="-Djava.library.path=$$PWD/build/lib";
 
 .PHONY: distclean
 distclean:

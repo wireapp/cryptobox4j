@@ -51,9 +51,7 @@ COPY src/test ./src/test
 COPY pom.xml .
 # set env, as it doesn't work by default inside the docker image
 ENV LD_LIBRARY_PATH="/wire/cryptobox/build/lib"
-# build rest of the java code
-RUN mvn package -DargLine="-Djava.library.path=/wire/cryptobox/build/lib"
-
-##### package everything to /wire/cryptobox/dist
+# build and package everything to /wire/cryptobox/dist
 RUN make dist
+
 RUN echo "Libraries are ready in /wire/cryptobox/dist"
