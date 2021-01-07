@@ -53,7 +53,7 @@ compile-native:
 
 .PHONY: compile-java
 compile-java:
-	mvn package -DargLine="-Djava.library.path=$(pwd)/build/lib"
+	(export LD_LIBRARY_PATH="$(pwd)/build/lib" && mvn package)
 
 .PHONY: distclean
 distclean:
@@ -62,11 +62,11 @@ distclean:
 
 .PHONY: dist
 dist: compile
-	mkdir -p dist/lib
-	cp build/lib/$(LIBSODIUM) dist/lib/
-	cp build/lib/$(LIBCRYPTOBOX) dist/lib/
-	cp build/lib/$(LIBCRYPTOBOX_JNI) dist/lib/
-	cp target/cryptobox.jar dist/lib
+	mkdir -p dist
+	cp build/lib/$(LIBSODIUM) dist/
+	cp build/lib/$(LIBCRYPTOBOX) dist/
+	cp build/lib/$(LIBCRYPTOBOX_JNI) dist/
+	cp target/cryptobox.jar dist/
 
 #############################################################################
 # cryptobox
@@ -124,3 +124,8 @@ install-java: compile
 	cp build/lib/$(LIBSODIUM) "$$JAVA_HOME/bin/"
 	cp build/lib/$(LIBCRYPTOBOX) "$$JAVA_HOME/bin/"
 	cp build/lib/$(LIBCRYPTOBOX_JNI) "$$JAVA_HOME/bin/"
+
+#############################################################################
+# docker stuff
+docker-build:
+	docker build -t bots-base .
