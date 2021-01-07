@@ -8,6 +8,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class Util {
     public static void deleteDir(String dir) throws IOException {
         Path rootPath = Paths.get(dir);
@@ -16,4 +19,10 @@ public class Util {
                 .map(Path::toFile)
                 .forEach(File::delete);
     }
+
+    public static void assertDecrypted(byte[] decrypt, String text) {
+        assertArrayEquals(decrypt, text.getBytes());
+        assertEquals(text, new String(decrypt));
+    }
+
 }

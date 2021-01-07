@@ -1,26 +1,28 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
+
+import static com.wire.bots.cryptobox.Util.assertDecrypted;
 
 public class CryptoMemoryTest {
     private final static String bobId = "bob";
     private final static String bobClientId = "bob_device";
     private final static String aliceId = "alice";
     private final static String aliceClientId = "alice_device";
-    private static MemStorage storage = new MemStorage();
+    private static final MemStorage storage = new MemStorage();
     private static CryptoDb alice;
     private static CryptoDb bob;
     private static PreKey[] bobKeys;
     private static PreKey[] aliceKeys;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         alice = new CryptoDb(aliceId, storage);
         bob = new CryptoDb(bobId, storage);
@@ -29,7 +31,7 @@ public class CryptoMemoryTest {
         aliceKeys = alice.newPreKeys(0, 8);
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         alice.close();
         bob.close();
@@ -47,8 +49,7 @@ public class CryptoMemoryTest {
         // Decrypt using initSessionFromMessage
         byte[] decrypt = bob.decrypt(aliceClientId, cipher);
 
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+        assertDecrypted(decrypt, text);
     }
 
     @Test
@@ -60,8 +61,7 @@ public class CryptoMemoryTest {
         // Decrypt using initSessionFromMessage
         byte[] decrypt = alice.decrypt(bobClientId, cipher);
 
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+        assertDecrypted(decrypt, text);
     }
 
     @Test
@@ -73,8 +73,7 @@ public class CryptoMemoryTest {
         // Decrypt using session
         byte[] decrypt = alice.decrypt(bobClientId, cipher);
 
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+        assertDecrypted(decrypt, text);
     }
 
     @Test
@@ -87,8 +86,7 @@ public class CryptoMemoryTest {
             // Decrypt using session
             byte[] decrypt = alice.decrypt(bobClientId, cipher);
 
-            assert Arrays.equals(decrypt, text.getBytes());
-            assert text.equals(new String(decrypt));
+            assertDecrypted(decrypt, text);
 
             text = "Hey Bob, How's life? " + i;
 
@@ -97,8 +95,7 @@ public class CryptoMemoryTest {
             // Decrypt using session
             decrypt = bob.decrypt(aliceClientId, cipher);
 
-            assert Arrays.equals(decrypt, text.getBytes());
-            assert text.equals(new String(decrypt));
+            assertDecrypted(decrypt, text);
         }
     }
 
@@ -120,8 +117,8 @@ public class CryptoMemoryTest {
         // Encrypt using prekeys
         byte[] cipher = dave.encryptFromPreKeys(carlId, carlPrekeys[0], text.getBytes());
         byte[] decrypt = carl.decrypt(daveId, cipher);
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+
+        assertDecrypted(decrypt, text);
 
         carl.close();
         dave.close();
@@ -132,8 +129,7 @@ public class CryptoMemoryTest {
         cipher = dave.encryptFromSession(carlId, text.getBytes());
         decrypt = carl.decrypt(daveId, cipher);
 
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+        assertDecrypted(decrypt, text);
 
         carl.close();
         Util.deleteDir(dir);
@@ -142,8 +138,7 @@ public class CryptoMemoryTest {
 
         cipher = carl.encryptFromPreKeys(daveId, davePrekeys[0], text.getBytes());
         decrypt = dave.decrypt(carlId, cipher);
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+        assertDecrypted(decrypt, text);
 
         carl.close();
         dave.close();

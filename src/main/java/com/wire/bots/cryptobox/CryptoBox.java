@@ -212,7 +212,7 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException {
-        try (CryptoSession cryptoSession = initSessionFromPreKey(sid, preKey)) {
+        try (final CryptoSession cryptoSession = initSessionFromPreKey(sid, preKey)) {
             return cryptoSession.encrypt(content);
         }
     }
@@ -227,7 +227,7 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException {
-        try (CryptoSession session = tryGetSession(sid)) {
+        try (final CryptoSession session = tryGetSession(sid)) {
             if (session != null) {
                 return session.encrypt(content);
             }
@@ -245,7 +245,7 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] decrypt(String sid, byte[] cipher) throws CryptoException {
-        try (CryptoSession cryptoSession = tryGetSession(sid)) {
+        try (final CryptoSession cryptoSession = tryGetSession(sid)) {
             if (cryptoSession != null) {
                 return cryptoSession.decrypt(cipher);
             }
@@ -307,7 +307,7 @@ final public class CryptoBox implements ICryptobox {
     private CryptoSession tryGetSession(String sid) throws CryptoException {
         try {
             return getSession(sid);
-        } catch (CryptoException ex) {
+        } catch (final CryptoException ex) {
             if (ex.code == CryptoException.Code.SESSION_NOT_FOUND) {
                 return null;
             }
@@ -328,7 +328,7 @@ final public class CryptoBox implements ICryptobox {
      */
     private void deleteSession(String sid) throws CryptoException {
         errorIfClosed();
-        CryptoSession cryptoSession = getSession(sid);
+        final CryptoSession cryptoSession = getSession(sid);
         if (cryptoSession != null) {
             cryptoSession.close();
         }
@@ -363,6 +363,7 @@ final public class CryptoBox implements ICryptobox {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void finalize() throws Throwable {
         close();

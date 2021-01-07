@@ -1,9 +1,9 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class CryptoMemoryConcurrentTest {
 
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         alice = new CryptoDb(aliceId, new _Storage());
         bob = new CryptoDb(bobId, new _Storage());
@@ -37,7 +37,7 @@ public class CryptoMemoryConcurrentTest {
         aliceKeys = alice.newPreKeys(0, 8);
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         alice.close();
         bob.close();
@@ -60,7 +60,7 @@ public class CryptoMemoryConcurrentTest {
                     byte[] cipher = bob.encryptFromSession(aliceId, text.getBytes());
                     alice.decrypt(bobId, cipher);
                 } catch (Exception e) {
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
             });
         }
