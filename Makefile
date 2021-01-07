@@ -66,8 +66,7 @@ dist: compile
 	cp build/lib/$(LIBSODIUM) dist/lib/
 	cp build/lib/$(LIBCRYPTOBOX) dist/lib/
 	cp build/lib/$(LIBCRYPTOBOX_JNI) dist/lib/
-	jar -cvf dist/cryptobox-jni-$(VERSION).jar -C build/classes .
-	tar -C dist -czf dist/cryptobox-jni-$(OS)-$(ARCH)-$(VERSION).tar.gz lib cryptobox-jni-$(VERSION).jar
+	cp target/cryptobox.jar dist/lib
 
 #############################################################################
 # cryptobox
@@ -118,3 +117,10 @@ endif
 ifeq ($(OS), darwin)
 	install_name_tool -id "@loader_path/$(LIBSODIUM)" build/lib/$(LIBSODIUM)
 endif
+
+#############################################################################
+# install libraries to java home
+install-java: compile
+	cp build/lib/$(LIBSODIUM) "$$JAVA_HOME/bin/"
+	cp build/lib/$(LIBCRYPTOBOX) "$$JAVA_HOME/bin/"
+	cp build/lib/$(LIBCRYPTOBOX_JNI) "$$JAVA_HOME/bin/"
