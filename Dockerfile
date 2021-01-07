@@ -2,15 +2,7 @@ FROM ubuntu:xenial
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y \
-    && apt-get install openjdk-8-jre-headless -qqy --no-install-recommends \
-    && apt-get install libc++abi-dev -qqy --no-install-recommends \
-    && apt-get install protobuf-c-compiler -qqy --no-install-recommends \
-    && apt-get install libxcomposite-dev -qqy --no-install-recommends \
-    && apt-get install libxdamage-dev  -qqy --no-install-recommends \
-    && apt-get install libxrender-dev  -qqy --no-install-recommends \
-    && apt-get install libevent-dev  -qqy --no-install-recommends \
-    && apt-get install libc++-dev  -qqy --no-install-recommends \
-    && apt-get install curl -qqy --no-install-recommends
+    && apt-get install openjdk-8-jre-headless -qqy --no-install-recommends
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
