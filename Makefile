@@ -20,13 +20,13 @@ clean:
 	rm -f build/lib/libcryptobox-jni.$(LIB_TYPE)
 
 .PHONY: compile
-compile: cryptobox compile-native copy-libs compile-java
+compile: cryptobox compile-native compile-java
 
 .PHONY: compile-native
 compile-native:
 	$(CC) -std=c99 -g -Wall src/cryptobox-jni.c \
-	    -I${JAVA_HOME}/include \
-	    -I${JAVA_HOME}/include/$(OS) \
+	    -I"${JAVA_HOME}/include" \
+	    -I"${JAVA_HOME}/include/$(OS)" \
 	    -Ibuild/include \
 	    -Lbuild/lib \
 	    -lsodium \
@@ -41,7 +41,7 @@ endif
 
 .PHONY: compile-java
 compile-java:
-	mvn package -DskipTests=true
+	mvn package -DargLine="-Djava.library.path=$(pwd)/build/lib"
 
 .PHONY: distclean
 distclean:
@@ -96,5 +96,5 @@ endif
 
 #############################################################################
 # copy libraries to java home
-copy-libs:
+copy-libs: compile
 	cp -r build/lib/* $$JAVA_HOME/lib

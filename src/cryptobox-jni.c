@@ -13,20 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef __ANDROID__
-#include <android/log.h>
-#endif
 #include <jni.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <cbox.h>
-
-#define CBOXJNI_TAG "CryptoBox"
-
-#if defined( __ANDROID__ ) && !defined( NDEBUG )
-#define CBOXJNI_ANDROID_DEBUG 1
-#endif
 
 // Cache ////////////////////////////////////////////////////////////////////
 
@@ -113,10 +104,6 @@ jobject cboxjni_new_prekey(JNIEnv * j_env, CBox * cbox, uint16_t id) {
 
 JNIEXPORT jobject JNICALL
 cboxjni_open(JNIEnv * j_env, jclass j_class, jstring j_dir) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Opening CryptoBox");
-    #endif
-
     char const * dir = (*j_env)->GetStringUTFChars(j_env, j_dir, 0);
     if (cboxjni_check_error(j_env, dir)) {
         return NULL;
@@ -142,10 +129,6 @@ cboxjni_open(JNIEnv * j_env, jclass j_class, jstring j_dir) {
 
 JNIEXPORT jobject JNICALL
 cboxjni_open_with(JNIEnv * j_env, jclass j_class, jstring j_dir, jbyteArray j_id, jint j_mode) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Opening CryptoBox with external identity");
-    #endif
-
     char const * dir = (*j_env)->GetStringUTFChars(j_env, j_dir, 0);
     if (cboxjni_check_error(j_env, dir)) {
         return NULL;
@@ -181,38 +164,12 @@ cboxjni_open_with(JNIEnv * j_env, jclass j_class, jstring j_dir, jbyteArray j_id
 
 JNIEXPORT void JNICALL
 cboxjni_close(JNIEnv * j_env, jclass j_class, jlong j_ptr) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Closing CryptoBox");
-    #endif
-
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
     cbox_close(cbox);
 }
 
-JNIEXPORT jbyteArray JNICALL
-cboxjni_get_fingerprint_from_prekey(JNIEnv * j_env, jclass j_class, jbyteArray j_prekey) {
-        size_t prekey_len = (*j_env)->GetArrayLength(j_env, j_prekey);
-        jbyte *  prekey   = (*j_env)->GetByteArrayElements(j_env, j_prekey, NULL);
-
-        CBoxVec * fp = NULL;
-        CBoxResult rc = cbox_fingerprint_prekey((uint8_t *) prekey, prekey_len, &fp);
-
-        (*j_env)->ReleaseByteArrayElements(j_env, j_prekey, prekey, JNI_ABORT);
-
-        if (rc != CBOX_SUCCESS) {
-            cboxjni_throw(j_env, rc);
-            return NULL;
-        }
-
-        return cboxjni_vec2arr(j_env, fp);
-}
-
 JNIEXPORT jobject JNICALL
 cboxjni_new_last_prekey(JNIEnv * j_env, jclass j_class, jlong j_ptr) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Creating new last prekey");
-    #endif
-
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
 
     return cboxjni_new_prekey(j_env, cbox, CBOX_LAST_PREKEY_ID);
@@ -220,10 +177,6 @@ cboxjni_new_last_prekey(JNIEnv * j_env, jclass j_class, jlong j_ptr) {
 
 JNIEXPORT jobjectArray JNICALL
 cboxjni_new_prekeys(JNIEnv * j_env, jclass j_class, jlong j_ptr, jint j_start, jint j_num) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Creating new ephemeral prekeys");
-    #endif
-
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
 
     jobjectArray bundles = (*j_env)->NewObjectArray(j_env, j_num, cboxjni_pkbundle_class, 0);
@@ -259,10 +212,6 @@ cboxjni_local_fingerprint(JNIEnv * j_env, jclass j_class, jlong j_ptr) {
 
 JNIEXPORT jbyteArray JNICALL
 cboxjni_copy_identity(JNIEnv * j_env, jclass j_class, jlong j_ptr) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Copying CryptoBox identity");
-    #endif
-
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
 
     CBoxVec * id = NULL;
@@ -282,10 +231,6 @@ cboxjni_init_from_prekey(JNIEnv * j_env, jclass j_class, jlong j_ptr, jstring j_
     if (cboxjni_check_error(j_env, sid)) {
         return NULL;
     }
-
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_print(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Initialising session from prekey: %s", sid);
-    #endif
 
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
 
@@ -317,10 +262,6 @@ cboxjni_init_from_message(JNIEnv * j_env, jclass j_class, jlong j_ptr, jstring j
     if (cboxjni_check_error(j_env, sid)) {
         return NULL;
     }
-
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_print(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Intialising session from message: %s", sid);
-    #endif
 
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
 
@@ -363,10 +304,6 @@ cboxjni_session_load(JNIEnv * j_env, jclass j_class, jlong j_ptr, jstring j_sid)
         return NULL;
     }
 
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_print(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Loading CryptoSession: %s", sid);
-    #endif
-
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
 
     CBoxSession * csess = NULL;
@@ -389,10 +326,6 @@ cboxjni_session_delete(JNIEnv * j_env, jclass j_class, jlong j_ptr, jstring j_si
         return;
     }
 
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_print(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Deleting CryptoSession: %s", sid);
-    #endif
-
     CBox * cbox = (CBox *) (intptr_t) j_ptr;
 
     CBoxResult rc = cbox_session_delete(cbox, sid);
@@ -408,10 +341,6 @@ cboxjni_session_delete(JNIEnv * j_env, jclass j_class, jlong j_ptr, jstring j_si
 
 JNIEXPORT jbyteArray JNICALL
 cboxjni_session_encrypt(JNIEnv * j_env, jclass j_class, jlong j_ptr, jbyteArray j_plain) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Encrypting message");
-    #endif
-
     CBoxSession * csess = (CBoxSession *) (intptr_t) j_ptr;
 
     size_t plain_len = (*j_env)->GetArrayLength(j_env, j_plain);
@@ -436,10 +365,6 @@ cboxjni_session_encrypt(JNIEnv * j_env, jclass j_class, jlong j_ptr, jbyteArray 
 
 JNIEXPORT jbyteArray JNICALL
 cboxjni_session_decrypt(JNIEnv * j_env, jclass j_class, jlong j_ptr, jbyteArray j_cipher) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Decrypting message");
-    #endif
-
     CBoxSession * csess = (CBoxSession *) (intptr_t) j_ptr;
 
     size_t cipher_len = (*j_env)->GetArrayLength(j_env, j_cipher);
@@ -464,10 +389,6 @@ cboxjni_session_decrypt(JNIEnv * j_env, jclass j_class, jlong j_ptr, jbyteArray 
 
 JNIEXPORT void JNICALL
 cboxjni_session_save(JNIEnv * j_env, jclass j_class, jlong j_box_ptr, jlong j_ptr) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Saving CryptoSession");
-    #endif
-
     CBox        * cbox  = (CBox *) (intptr_t) j_box_ptr;
     CBoxSession * csess = (CBoxSession *) (intptr_t) j_ptr;
 
@@ -479,10 +400,6 @@ cboxjni_session_save(JNIEnv * j_env, jclass j_class, jlong j_box_ptr, jlong j_pt
 
 JNIEXPORT void JNICALL
 cboxjni_session_close(JNIEnv * j_env, jclass j_class, jlong j_ptr) {
-    #ifdef CBOXJNI_ANDROID_DEBUG
-    __android_log_write(ANDROID_LOG_DEBUG, CBOXJNI_TAG, "Closing CryptoSession");
-    #endif
-
     CBoxSession * csess = (CBoxSession *) (intptr_t) j_ptr;
 
     cbox_session_close(csess);
@@ -505,18 +422,17 @@ cboxjni_remote_fingerprint(JNIEnv * j_env, jclass j_class, jlong j_ptr) {
 // Bookkeeping //////////////////////////////////////////////////////////////
 
 static JNINativeMethod cboxjni_box_methods[] = {
-    { "jniOpen"                    , "(Ljava/lang/String;)Lcom/wire/cryptobox/CryptoBox;"         , (void *) cboxjni_open                        },
-    { "jniOpenWith"                , "(Ljava/lang/String;[BI)Lcom/wire/cryptobox/CryptoBox;"      , (void *) cboxjni_open_with                   },
-    { "jniClose"                   , "(J)V"                                                       , (void *) cboxjni_close                       },
-    { "jniGetFingerprintFromPrekey", "([B)[B"                                                     , (void *) cboxjni_get_fingerprint_from_prekey },
-    { "jniNewPreKeys"              , "(JII)[Lcom/wire/cryptobox/PreKey;"                          , (void *) cboxjni_new_prekeys                 },
-    { "jniNewLastPreKey"           , "(J)Lcom/wire/cryptobox/PreKey;"                             , (void *) cboxjni_new_last_prekey             },
-    { "jniGetLocalFingerprint"     , "(J)[B"                                                      , (void *) cboxjni_local_fingerprint           },
-    { "jniCopyIdentity"            , "(J)[B"                                                      , (void *) cboxjni_copy_identity               },
-    { "jniInitSessionFromPreKey"   , "(JLjava/lang/String;[B)Lcom/wire/cryptobox/CryptoSession;"  , (void *) cboxjni_init_from_prekey            },
-    { "jniInitSessionFromMessage"  , "(JLjava/lang/String;[B)Lcom/wire/cryptobox/SessionMessage;" , (void *) cboxjni_init_from_message           },
-    { "jniLoadSession"             , "(JLjava/lang/String;)Lcom/wire/cryptobox/CryptoSession;"    , (void *) cboxjni_session_load                },
-    { "jniDeleteSession"           , "(JLjava/lang/String;)V"                                     , (void *) cboxjni_session_delete              }
+    { "jniOpen"                  , "(Ljava/lang/String;)Lcom/wire/bots/cryptobox/CryptoBox;"           , (void *) cboxjni_open              },
+    { "jniOpenWith"              , "(Ljava/lang/String;[BI)Lcom/wire/bots/cryptobox/CryptoBox;"        , (void *) cboxjni_open_with         },
+    { "jniClose"                 , "(J)V"                                                         , (void *) cboxjni_close             },
+    { "jniNewPreKeys"            , "(JII)[Lcom/wire/bots/cryptobox/PreKey;"                            , (void *) cboxjni_new_prekeys       },
+    { "jniNewLastPreKey"         , "(J)Lcom/wire/bots/cryptobox/PreKey;"                               , (void *) cboxjni_new_last_prekey   },
+    { "jniGetLocalFingerprint"   , "(J)[B"                                                        , (void *) cboxjni_local_fingerprint },
+    { "jniCopyIdentity"          , "(J)[B"                                                        , (void *) cboxjni_copy_identity     },
+    { "jniInitSessionFromPreKey" , "(JLjava/lang/String;[B)Lcom/wire/bots/cryptobox/CryptoSession;"    , (void *) cboxjni_init_from_prekey  },
+    { "jniInitSessionFromMessage", "(JLjava/lang/String;[B)Lcom/wire/bots/cryptobox/SessionMessage;"   , (void *) cboxjni_init_from_message },
+    { "jniLoadSession"           , "(JLjava/lang/String;)Lcom/wire/bots/cryptobox/CryptoSession;"      , (void *) cboxjni_session_load      },
+    { "jniDeleteSession"         , "(JLjava/lang/String;)V"                                       , (void *) cboxjni_session_delete    }
 };
 
 static JNINativeMethod cboxjni_sess_methods[] = {
@@ -538,9 +454,6 @@ jmethodID cboxjni_find_method(JNIEnv * j_env, jclass cls, char const * name, cha
 jclass cboxjni_find_class(JNIEnv * j_env, char const * name) {
     jclass j_class = (*j_env)->FindClass(j_env, name);
     if ((*j_env)->ExceptionCheck(j_env) == JNI_TRUE) {
-        #ifdef __ANDROID__
-        __android_log_print(ANDROID_LOG_ERROR, CBOXJNI_TAG, "Failed to find class: %s", name);
-        #endif
         return NULL;
     }
 
@@ -556,22 +469,22 @@ jint JNI_OnLoad(JavaVM * vm, void * reserved) {
         return JNI_EVERSION;
     }
 
-    cboxjni_ex_class = cboxjni_find_class(j_env, "com/wire/cryptobox/CryptoException");
+    cboxjni_ex_class = cboxjni_find_class(j_env, "com/wire/bots/cryptobox/CryptoException");
     if (cboxjni_ex_class == NULL) return JNI_ERR;
 
-    cboxjni_box_class = cboxjni_find_class(j_env, "com/wire/cryptobox/CryptoBox");
+    cboxjni_box_class = cboxjni_find_class(j_env, "com/wire/bots/cryptobox/CryptoBox");
     if (cboxjni_box_class == NULL) return JNI_ERR;
 
-    cboxjni_sess_class = cboxjni_find_class(j_env, "com/wire/cryptobox/CryptoSession");
+    cboxjni_sess_class = cboxjni_find_class(j_env, "com/wire/bots/cryptobox/CryptoSession");
     if (cboxjni_sess_class == NULL) return JNI_ERR;
 
-    cboxjni_sessmsg_class = cboxjni_find_class(j_env, "com/wire/cryptobox/SessionMessage");
+    cboxjni_sessmsg_class = cboxjni_find_class(j_env, "com/wire/bots/cryptobox/SessionMessage");
     if (cboxjni_sessmsg_class == NULL) return JNI_ERR;
 
     cboxjni_bytearr_class = cboxjni_find_class(j_env, "[B");
     if (cboxjni_bytearr_class == NULL) return JNI_ERR;
 
-    cboxjni_pkbundle_class = cboxjni_find_class(j_env, "com/wire/cryptobox/PreKey");
+    cboxjni_pkbundle_class = cboxjni_find_class(j_env, "com/wire/bots/cryptobox/PreKey");
     if (cboxjni_pkbundle_class == NULL) return JNI_ERR;
 
     cboxjni_ex_ctor = cboxjni_find_method(j_env, cboxjni_ex_class, "<init>", "(I)V");
@@ -583,7 +496,7 @@ jint JNI_OnLoad(JavaVM * vm, void * reserved) {
     cboxjni_box_ctor = cboxjni_find_method(j_env, cboxjni_box_class, "<init>", "(J)V");
     if (cboxjni_box_ctor == NULL) return JNI_ERR;
 
-    cboxjni_sessmsg_ctor = cboxjni_find_method(j_env, cboxjni_sessmsg_class, "<init>", "(Lcom/wire/cryptobox/CryptoSession;[B)V");
+    cboxjni_sessmsg_ctor = cboxjni_find_method(j_env, cboxjni_sessmsg_class, "<init>", "(Lcom/wire/bots/cryptobox/CryptoSession;[B)V");
     if (cboxjni_sessmsg_ctor == NULL) return JNI_ERR;
 
     cboxjni_pkbundle_ctor = cboxjni_find_method(j_env, cboxjni_pkbundle_class, "<init>", "(I[B)V");
