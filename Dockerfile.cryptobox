@@ -45,7 +45,7 @@ RUN mkdir src
 COPY src/cryptobox-jni.c ./src/
 RUN make compile-native
 
-##### build java wrapper around cryptobox
+##### build java wrapper and prometheus java agent around cryptobox
 COPY src/main ./src/main
 COPY src/test ./src/test
 COPY pom.xml .
@@ -54,4 +54,6 @@ ENV LD_LIBRARY_PATH="/wire/cryptobox/build/lib"
 # build and package everything to /wire/cryptobox/dist
 RUN make dist
 
-RUN echo "Libraries are ready in /wire/cryptobox/dist"
+RUN echo "Libraries are ready in /wire/cryptobox/dist/lib"
+RUN echo "Cryptobox JAR is ready in /wire/cryptobox/dist/jar"
+RUN echo "Prometheus Agent JAR is ready in /wire/cryptobox/dist/jar"

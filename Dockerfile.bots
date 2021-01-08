@@ -1,0 +1,19 @@
+# TODO add correct name
+FROM cryptobox as cryptobox
+
+FROM adoptopenjdk/openjdk11:alpine-jre
+
+RUN mkdir -p /opt/wire/lib
+# make Java to take this as java.library.path
+ENV LD_LIBRARY_PATH=/opt/wire/lib
+
+# copy cryptobox libraries
+COPY --from=cryptobox /wire/cryptobox/dist/lib /opt/wire/lib
+# copy prometheus agent
+COPY --from=cryptobox /wire/cryptobox/dist/jar/prometheus-agent.jar /opt/wire/lib/
+# copy metrics seettings
+COPY metrics.yaml /opt/wire/lib/metrics.yaml
+
+# enable crypto https://stackoverflow.com/a/42163925/7169288
+# it should be enabled by default, we're doing this just to be sure
+RUN sed -i 's/^#crypto.policy=unlimited/crypto.policy=unlimited/' $JAVA_HOME/conf/security/java.security
