@@ -13,11 +13,19 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+        with:
+          # checkout whole history with tags
+          fetch-depth: 0
 
         # do not push if this pipeline runs on PR
       - name: Determine Docker Push
         run: |
           echo "PUSH=${{ github.event.pull_request == null }}" >> $GITHUB_ENV
+
+      # determine latest tag to use for docker deployment
+      - name: Get Latest Tag
+        id: tags
+        uses: WyriHaximus/github-action-get-previous-tag@master
 
         # setup docker actions https://github.com/docker/build-push-action
       - name: Set up QEMU
@@ -43,7 +51,8 @@ jobs:
         with:
           context: .
           file: dockerfiles/Dockerfile.cryptobox
-          tags: ${{ env.CRYPTOBOX_IMAGE }}:latest
+          load: true # make the image available in the next step
+          tags: ${{ env.CRYPTOBOX_IMAGE }}:latest,${{ env.CRYPTOBOX_IMAGE }}:${{ steps.tags.outputs.tag }}
           labels: ${{ steps.docker_meta_cryptobox.outputs.labels }}
           push: ${{ env.PUSH == 'true' }}
 
@@ -59,7 +68,7 @@ jobs:
         with:
           context: .
           file: dockerfiles/Dockerfile.runtime
-          tags: ${{ env.RUNTIME_IMAGE }}:latest
+          tags: ${{ env.RUNTIME_IMAGE }}:latest,${{ env.RUNTIME_IMAGE }}:${{ steps.tags.outputs.tag }}
           labels: ${{ steps.docker_meta_runtime.outputs.labels }}
           push: ${{ env.PUSH == 'true' }}
 
