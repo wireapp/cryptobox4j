@@ -1,5 +1,4 @@
-# TODO add correct name
-FROM cryptobox as cryptobox
+FROM wirebot/cryptobox as cryptobox
 
 FROM adoptopenjdk/openjdk11:alpine-jre
 

@@ -55,8 +55,8 @@ compile-native:
 
 .PHONY: compile-java
 compile-java:
-	export LD_LIBRARY_PATH="$$PWD/build/lib"; \
-	mvn package -DargLine="-Djava.library.path=$$PWD/build/lib";
+	export LD_LIBRARY_PATH="$(PWD)/build/lib"; \
+	mvn package -DargLine="-Djava.library.path=$$LD_LIBRARY_PATH";
 
 .PHONY: distclean
 distclean:
@@ -146,7 +146,7 @@ install-java: compile
 docker-build: docker-cryptobox docker-bots-base
 
 docker-bots-base:
-	docker build -f Dockerfile.bots -t bots-runtime .
+	docker build -f dockerfiles/Dockerfile.runtime -t wirebot/runtime .
 
 docker-cryptobox:
-	docker build -f Dockerfile.cryptobox -t cryptobox .
+	docker build -f dockerfiles/Dockerfile.cryptobox -t wirebot/cryptobox .
