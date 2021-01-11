@@ -1,0 +1,12 @@
+.idea
+build
+data
+dist
+target
+*.iml
+Dockerfile
+Dockerfile.*
+LICENSE
+README.md
+.github
+.dockerignore

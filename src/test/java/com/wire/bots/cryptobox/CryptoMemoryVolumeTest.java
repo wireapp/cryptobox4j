@@ -1,8 +1,8 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.AfterClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CryptoMemoryVolumeTest {
     private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
 
-    @AfterClass
+    @BeforeAll
     public static void clean() throws IOException {
         Util.deleteDir("data");
     }

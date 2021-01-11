@@ -6,13 +6,18 @@
 
     <groupId>com.wire.bots</groupId>
     <artifactId>cryptobox</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.7.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -53,7 +58,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>2.4.3</version>
                 <configuration>
-                    <finalName>cryptobox</finalName>
+                    <finalName>cryptobox4j</finalName>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <artifactSet>
                         <excludes>

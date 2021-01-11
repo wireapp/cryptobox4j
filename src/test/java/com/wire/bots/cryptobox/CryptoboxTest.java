@@ -1,19 +1,20 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.wire.bots.cryptobox.Util.assertDecrypted;
 
 public class CryptoboxTest {
     private final static String bobId;
@@ -29,7 +30,7 @@ public class CryptoboxTest {
         bobId = "" + rnd.nextInt();
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUp() throws Exception {
         String alicePath = String.format("data/%s", aliceId);
         String bobPath = String.format("data/%s", bobId);
@@ -41,7 +42,7 @@ public class CryptoboxTest {
         aliceKeys = alice.newPreKeys(0, 8);
     }
 
-    @AfterClass
+    @AfterAll
     public static void clean() throws IOException {
         alice.close();
         bob.close();
@@ -59,8 +60,7 @@ public class CryptoboxTest {
         // Decrypt using initSessionFromMessage
         byte[] decrypt = bob.decrypt(aliceId, cipher);
 
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+        assertDecrypted(decrypt, text);
 
         for (int i = 0; i < 10; i++) {
             // Encrypt using session
@@ -69,8 +69,7 @@ public class CryptoboxTest {
             // Decrypt using session
             decrypt = bob.decrypt(aliceId, cipher);
 
-            assert Arrays.equals(decrypt, text.getBytes());
-            assert text.equals(new String(decrypt));
+            assertDecrypted(decrypt, text);
         }
     }
 
@@ -83,8 +82,7 @@ public class CryptoboxTest {
         // Decrypt using initSessionFromMessage
         byte[] decrypt = alice.decrypt(bobId, cipher);
 
-        assert Arrays.equals(decrypt, text.getBytes());
-        assert text.equals(new String(decrypt));
+        assertDecrypted(decrypt, text);
     }
 
     @Test
@@ -97,8 +95,7 @@ public class CryptoboxTest {
             // Decrypt using session
             byte[] decrypt = alice.decrypt(bobId, cipher);
 
-            assert Arrays.equals(decrypt, text.getBytes());
-            assert text.equals(new String(decrypt));
+            assertDecrypted(decrypt, text);
 
             text = "Hey Bob, How's life? " + i;
 
@@ -107,8 +104,7 @@ public class CryptoboxTest {
             // Decrypt using session
             decrypt = bob.decrypt(aliceId, cipher);
 
-            assert Arrays.equals(decrypt, text.getBytes());
-            assert text.equals(new String(decrypt));
+            assertDecrypted(decrypt, text);
         }
     }
 
@@ -164,7 +160,7 @@ public class CryptoboxTest {
         alice.close();
     }
 
-    private static String hexify(byte bytes[]) {
+    private static String hexify(byte[] bytes) {
         StringBuilder buf = new StringBuilder(bytes.length * 2);
         for (int i = 0; i < bytes.length; i += 2) {
             buf.append((char) bytes[i]);
@@ -174,7 +170,7 @@ public class CryptoboxTest {
         return buf.toString().trim();
     }
 
-    private static String encode(byte bytes[]) {
+    private static String encode(byte[] bytes) {
         char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
         StringBuilder buf = new StringBuilder(bytes.length * 2);
         for (byte aByte : bytes) {

@@ -1,0 +1,16 @@
+name: Code Check
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+jobs:
+  native-build:
+    runs-on: ubuntu-20.04
+    container: wirebot/cryptobox:latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Execute Tests
+        run: |
+          mvn test -DargLine="-Djava.library.path=$LD_LIBRARY_PATH";
