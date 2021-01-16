@@ -1,6 +1,8 @@
 FROM wirebot/cryptobox as cryptobox
 
 FROM adoptopenjdk/openjdk11:alpine-jre
+# update dependencies in the base image
+RUN apt-get update && apt-get upgrade -y
 
 RUN mkdir -p /opt/wire/lib
 # make Java to take this as java.library.path
