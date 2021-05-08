@@ -1,7 +1,10 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -70,35 +73,38 @@ public class CryptoMemoryTest {
         byte[] decrypt = alice.decrypt(bobClientId, cipher);
 
         assertDecrypted(decrypt, text);
-    }
 
-    @Test
-    @Disabled("This tests fails on broken sessions")
-    public void testSessions() throws Exception {
-        String text = "Hello Alice, This is Bob, again!";
-
-        byte[] cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
-        // TODO this line fails
+        // now the session should be initialized
+        text = "Hello Alice, this is Bob using sessions!";
+        cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
         Assertions.assertNotNull(cipher);
 
         // Decrypt using session
-        byte[] decrypt = alice.decrypt(bobClientId, cipher);
-
+        decrypt = alice.decrypt(bobClientId, cipher);
         assertDecrypted(decrypt, text);
+
     }
 
     @Test
-    @Disabled("This tests fails on broken sessions")
     public void testMassiveSessions() throws Exception {
-        for (int i = 0; i < 100; i++) {
-            String text = "Hello Alice, This is Bob, again! " + i;
+        String text = "Hello Alice, This is Bob!";
 
-            byte[] cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
-            // TODO this line fails
+        byte[] cipher = bob.encryptFromPreKeys(aliceClientId, aliceKeys[0], text.getBytes());
+        Assertions.assertNotNull(cipher);
+
+        // Decrypt using initSessionFromMessage
+        byte[] decrypt = alice.decrypt(bobClientId, cipher);
+
+        assertDecrypted(decrypt, text);
+
+        for (int i = 0; i < 100; i++) {
+            text = "Hello Alice, This is Bob, again! " + i;
+
+            cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
             Assertions.assertNotNull(cipher);
 
             // Decrypt using session
-            byte[] decrypt = alice.decrypt(bobClientId, cipher);
+            decrypt = alice.decrypt(bobClientId, cipher);
 
             assertDecrypted(decrypt, text);
 

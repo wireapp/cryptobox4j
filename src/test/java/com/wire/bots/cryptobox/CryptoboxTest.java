@@ -1,7 +1,10 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -86,17 +89,23 @@ public class CryptoboxTest {
     }
 
     @Test
-    @Disabled("This tests fails on broken sessions")
     public void testMassiveSessions() throws Exception {
-        for (int i = 0; i < 100; i++) {
-            String text = "Hello Alice, This is Bob, again! " + i;
+        String text = "Hello Bob, This is Alice!";
+        // Encrypt using prekeys
+        byte[] cipher = alice.encryptFromPreKeys(bobId, bobKeys[0], text.getBytes());
+        // Decrypt using initSessionFromMessage
+        byte[] decrypt = bob.decrypt(aliceId, cipher);
 
-            byte[] cipher = bob.encryptFromSession(aliceId, text.getBytes());
-            // TODO this line fails
+        assertDecrypted(decrypt, text);
+
+        for (int i = 0; i < 100; i++) {
+            text = "Hello Alice, This is Bob, again! " + i;
+
+            cipher = bob.encryptFromSession(aliceId, text.getBytes());
             Assertions.assertNotNull(cipher);
 
             // Decrypt using session
-            byte[] decrypt = alice.decrypt(bobId, cipher);
+            decrypt = alice.decrypt(bobId, cipher);
 
             assertDecrypted(decrypt, text);
 
