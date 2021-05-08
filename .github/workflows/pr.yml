@@ -13,4 +13,4 @@ jobs:
 
       - name: Execute Tests
         run: |
-          mvn package -DskipTests -DargLine="-Djava.library.path=$LD_LIBRARY_PATH";
+          mvn package -DargLine="-Djava.library.path=$LD_LIBRARY_PATH";

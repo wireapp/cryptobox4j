@@ -1,48 +1,44 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class CryptoMemoryConcurrentTest {
-    private final static String bobId;
-    private final static String aliceId;
-    private static CryptoDb alice;
-    private static CryptoDb bob;
-    private static PreKey[] bobKeys;
-    private static PreKey[] aliceKeys;
+    private String bobId;
+    private String aliceId;
+    private CryptoDb alice;
+    private CryptoDb bob;
+    private PreKey[] bobKeys;
+    private PreKey[] aliceKeys;
 
-    static {
-        Random rnd = new Random();
-        aliceId = "" + rnd.nextInt();
-        bobId = "" + rnd.nextInt();
-    }
+    private ScheduledExecutorService executor;
 
-    private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
+    @BeforeEach
+    public void setUp() throws Exception {
+        aliceId = UUID.randomUUID().toString();
+        bobId = UUID.randomUUID().toString();
 
-    @BeforeAll
-    public static void setUp() throws Exception {
         alice = new CryptoDb(aliceId, new _Storage());
         bob = new CryptoDb(bobId, new _Storage());
 
         bobKeys = bob.newPreKeys(0, 8);
         aliceKeys = alice.newPreKeys(0, 8);
+
+        executor = new ScheduledThreadPoolExecutor(12);
     }
 
-    @AfterAll
-    public static void clean() throws IOException {
+    @AfterEach
+    public void clean() {
         alice.close();
         bob.close();
-
-        Util.deleteDir("data");
     }
 
     @Test
@@ -65,6 +61,7 @@ public class CryptoMemoryConcurrentTest {
             });
         }
         executor.shutdown();
+        //noinspection ResultOfMethodCallIgnored
         executor.awaitTermination(20, TimeUnit.SECONDS);
     }
 

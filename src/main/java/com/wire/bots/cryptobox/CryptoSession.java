@@ -45,10 +45,19 @@ final class CryptoSession implements Closeable {
 
     private native static void jniClose(long ptr);
 
+    private static void errorOnNull(Object data, String paramName) {
+        if (data == null) {
+            throw new IllegalArgumentException(String.format("Parameter \"%s\" can't be null!", paramName));
+        }
+    }
+
     /**
      * Save the session, persisting any changes made to the underlying
      * key material as a result of any {@link #encrypt} and {@link #decrypt}
      * operations since the last save.
+     *
+     * @throws CryptoException       from native code.
+     * @throws IllegalStateException when session is closed.
      */
     void save() throws CryptoException {
         errorIfClosed();
@@ -64,26 +73,15 @@ final class CryptoSession implements Closeable {
      *
      * @param plaintext The plaintext to encrypt.
      * @return A byte array containing the ciphertext.
+     * @throws CryptoException          from native code.
+     * @throws IllegalArgumentException when {@code plaintext} is null.
+     * @throws IllegalStateException    when session is closed.
      */
     byte[] encrypt(byte[] plaintext) throws CryptoException {
         errorIfClosed();
+        errorOnNull(plaintext, "plaintext");
         try {
             return jniEncrypt(ptr, plaintext);
-        } finally {
-            save();
-        }
-    }
-
-    /**
-     * Decrypt a byte array containing ciphertext.
-     *
-     * @param cipher The ciphertext to decrypt.
-     * @return A byte array containing the plaintext.
-     */
-    byte[] decrypt(byte[] cipher) throws CryptoException {
-        errorIfClosed();
-        try {
-            return jniDecrypt(ptr, cipher);
         } finally {
             save();
         }
@@ -105,6 +103,25 @@ final class CryptoSession implements Closeable {
     private void errorIfClosed() {
         if (isClosed()) {
             throw new IllegalStateException("Invalid operation on a closed CryptoSession.");
+        }
+    }
+
+    /**
+     * Decrypt a byte array containing ciphertext.
+     *
+     * @param cipher The ciphertext to decrypt.
+     * @return A byte array containing the plaintext.
+     * @throws CryptoException          from native code.
+     * @throws IllegalArgumentException when {@code plaintext} is null.
+     * @throws IllegalStateException    when session is closed.
+     */
+    byte[] decrypt(byte[] cipher) throws CryptoException {
+        errorIfClosed();
+        errorOnNull(cipher, "cipher");
+        try {
+            return jniDecrypt(ptr, cipher);
+        } finally {
+            save();
         }
     }
 
