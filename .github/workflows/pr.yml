@@ -13,5 +13,4 @@ jobs:
 
       - name: Execute Tests
         run: |
-          export LD_BIND_NOW=1 # see https://stackoverflow.com/a/39397405/7169288
-          mvn test -DargLine="-Djava.library.path=$LD_LIBRARY_PATH";
+          mvn package -DskipTests -DargLine="-Djava.library.path=$LD_LIBRARY_PATH";

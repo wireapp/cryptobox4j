@@ -49,8 +49,6 @@ RUN make compile-native
 COPY src/main ./src/main
 COPY src/test ./src/test
 COPY pom.xml .
-# see https://stackoverflow.com/a/39397405/7169288
-ENV LD_BIND_NOW=1
 # build and package everything to /wire/cryptobox/dist
 RUN make dist
 
