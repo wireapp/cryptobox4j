@@ -1,29 +1,38 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.UUID;
 
 import static com.wire.bots.cryptobox.Util.assertDecrypted;
 
 public class CryptoMemoryTest {
-    private final static String bobId = "bob";
-    private final static String bobClientId = "bob_device";
-    private final static String aliceId = "alice";
-    private final static String aliceClientId = "alice_device";
-    private static final MemStorage storage = new MemStorage();
-    private static CryptoDb alice;
-    private static CryptoDb bob;
-    private static PreKey[] bobKeys;
-    private static PreKey[] aliceKeys;
+    private String bobClientId;
+    private String aliceClientId;
+    private MemStorage storage;
+    private CryptoDb alice;
+    private CryptoDb bob;
+    private PreKey[] bobKeys;
+    private PreKey[] aliceKeys;
 
-    @BeforeAll
-    public static void setUp() throws Exception {
+    private String rootFolder;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        rootFolder = "cryptobox-test-data-" + UUID.randomUUID();
+
+        final String aliceId = UUID.randomUUID().toString();
+        aliceClientId = aliceId + "-client";
+        final String bobId = UUID.randomUUID().toString();
+        bobClientId = bobId + "-client";
+
+        storage = new MemStorage();
+
         alice = new CryptoDb(aliceId, storage);
         bob = new CryptoDb(bobId, storage);
 
@@ -31,13 +40,14 @@ public class CryptoMemoryTest {
         aliceKeys = alice.newPreKeys(0, 8);
     }
 
-    @AfterAll
-    public static void clean() throws IOException {
+    @AfterEach
+    public void clean() throws IOException {
         alice.close();
         bob.close();
 
-        Util.deleteDir("data");
+        Util.deleteDir(rootFolder);
     }
+
 
     @Test
     public void testAliceToBob() throws Exception {
@@ -57,34 +67,44 @@ public class CryptoMemoryTest {
         String text = "Hello Alice, This is Bob!";
 
         byte[] cipher = bob.encryptFromPreKeys(aliceClientId, aliceKeys[0], text.getBytes());
+        Assertions.assertNotNull(cipher);
 
         // Decrypt using initSessionFromMessage
         byte[] decrypt = alice.decrypt(bobClientId, cipher);
 
         assertDecrypted(decrypt, text);
-    }
 
-    @Test
-    public void testSessions() throws Exception {
-        String text = "Hello Alice, This is Bob, again!";
-
-        byte[] cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
+        // now the session should be initialized
+        text = "Hello Alice, this is Bob using sessions!";
+        cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
+        Assertions.assertNotNull(cipher);
 
         // Decrypt using session
-        byte[] decrypt = alice.decrypt(bobClientId, cipher);
-
+        decrypt = alice.decrypt(bobClientId, cipher);
         assertDecrypted(decrypt, text);
+
     }
 
     @Test
     public void testMassiveSessions() throws Exception {
-        for (int i = 0; i < 100; i++) {
-            String text = "Hello Alice, This is Bob, again! " + i;
+        String text = "Hello Alice, This is Bob!";
 
-            byte[] cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
+        byte[] cipher = bob.encryptFromPreKeys(aliceClientId, aliceKeys[0], text.getBytes());
+        Assertions.assertNotNull(cipher);
+
+        // Decrypt using initSessionFromMessage
+        byte[] decrypt = alice.decrypt(bobClientId, cipher);
+
+        assertDecrypted(decrypt, text);
+
+        for (int i = 0; i < 100; i++) {
+            text = "Hello Alice, This is Bob, again! " + i;
+
+            cipher = bob.encryptFromSession(aliceClientId, text.getBytes());
+            Assertions.assertNotNull(cipher);
 
             // Decrypt using session
-            byte[] decrypt = alice.decrypt(bobClientId, cipher);
+            decrypt = alice.decrypt(bobClientId, cipher);
 
             assertDecrypted(decrypt, text);
 
@@ -101,14 +121,13 @@ public class CryptoMemoryTest {
 
     @Test
     public void testIdentity() throws Exception {
-        Random random = new Random();
-        final String carlId = "" + random.nextInt();
-        final String dir = "data/" + carlId;
+        final String carlId = UUID.randomUUID().toString();
+        final String dir = String.format("%s/%s", rootFolder, carlId);
 
         CryptoDb carl = new CryptoDb(carlId, storage);
         PreKey[] carlPrekeys = carl.newPreKeys(0, 8);
 
-        String daveId = "" + random.nextInt();
+        String daveId = UUID.randomUUID().toString();
         CryptoDb dave = new CryptoDb(daveId, storage);
         PreKey[] davePrekeys = dave.newPreKeys(0, 8);
 

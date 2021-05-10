@@ -83,6 +83,8 @@ final public class CryptoBox implements ICryptobox {
      * @throws CryptoException from native code if it was not possible to perform the operation.
      */
     public static CryptoBox open(String dir) throws CryptoException {
+        errorOnNull(dir, "dir");
+
         new File(dir).mkdirs();
         return jniOpen(dir);
     }
@@ -106,6 +108,10 @@ final public class CryptoBox implements ICryptobox {
      * @throws CryptoException       from native code if it was not possible to perform the operation.
      */
     public static CryptoBox openWith(String dir, byte[] id, IdentityMode mode) throws CryptoException {
+        errorOnNull(dir, "dir");
+        errorOnNull(id, "id");
+        errorOnNull(mode, "mode");
+
         new File(dir).mkdirs();
         switch (mode) {
             case COMPLETE:
@@ -125,6 +131,9 @@ final public class CryptoBox implements ICryptobox {
      * @throws CryptoException from native code if it was not possible to perform the operation.
      */
     public static byte[] getFingerprintFromPrekey(PreKey preKey) throws CryptoException {
+        errorOnNull(preKey, "preKey");
+        errorOnNull(preKey.data, "preKey.data");
+
         return jniGetFingerprintFromPrekey(preKey.data);
     }
 
@@ -185,13 +194,19 @@ final public class CryptoBox implements ICryptobox {
         return jniNewLastPreKey(ptr);
     }
 
+    private static void errorOnNull(Object data, String paramName) {
+        if (data == null) {
+            throw new IllegalArgumentException(String.format("Parameter \"%s\" can't be null!", paramName));
+        }
+    }
+
     /**
      * Generate a new batch of ephemeral prekeys.
      * <p>
      * If <tt>start + num {@literal >} {@link #MAX_PREKEY_ID}</tt> the IDs wrap around and start
      * over at 0. Thus after any valid invocation of this method, the last generated
      * prekey ID is always <tt>(start + num) % ({@link #MAX_PREKEY_ID} + 1)</tt>. The caller
-     * can remember that ID and feed it back into {@link #newPreKeys} as the start
+     * can remember that ID and feed it back into this method as the start
      * ID when the next batch of ephemeral keys needs to be generated.
      *
      * @param start The ID ({@literal >}= 0 and {@literal <}= {@link #MAX_PREKEY_ID}) of the first prekey to generate.
@@ -199,13 +214,13 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public PreKey[] newPreKeys(int start, int num) throws CryptoException {
+        errorIfClosed();
         if (start < 0 || start > MAX_PREKEY_ID) {
             throw new IllegalArgumentException("start must be >= 0 and <= " + MAX_PREKEY_ID);
         }
         if (num < 1 || num > MAX_PREKEY_ID) {
             throw new IllegalArgumentException("num must be >= 1 and <= " + MAX_PREKEY_ID);
         }
-        errorIfClosed();
         return jniNewPreKeys(ptr, start, num);
     }
 
@@ -219,6 +234,10 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] encryptFromPreKeys(String sid, PreKey preKey, byte[] content) throws CryptoException {
+        errorOnNull(sid, "sid");
+        errorOnNull(preKey, "preKey");
+        errorOnNull(content, "content");
+
         try (final CryptoSession cryptoSession = initSessionFromPreKey(sid, preKey)) {
             return cryptoSession.encrypt(content);
         }
@@ -234,6 +253,9 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] encryptFromSession(String sid, byte[] content) throws CryptoException {
+        errorOnNull(sid, "sid");
+        errorOnNull(content, "content");
+
         try (final CryptoSession session = tryGetSession(sid)) {
             if (session != null) {
                 return session.encrypt(content);
@@ -252,6 +274,9 @@ final public class CryptoBox implements ICryptobox {
      */
     @Override
     public byte[] decrypt(String sid, byte[] cipher) throws CryptoException {
+        errorOnNull(sid, "sid");
+        errorOnNull(cipher, "cipher");
+
         try (final CryptoSession cryptoSession = tryGetSession(sid)) {
             if (cryptoSession != null) {
                 return cryptoSession.decrypt(cipher);
@@ -274,6 +299,10 @@ final public class CryptoBox implements ICryptobox {
      */
     private CryptoSession initSessionFromPreKey(String sid, PreKey prekey) throws CryptoException {
         errorIfClosed();
+        errorOnNull(sid, "sid");
+        errorOnNull(prekey, "prekey");
+        errorOnNull(prekey.data, "prekey.data");
+
         return jniInitSessionFromPreKey(ptr, sid, prekey.data);
     }
 
@@ -287,6 +316,9 @@ final public class CryptoBox implements ICryptobox {
      */
     private SessionMessage initSessionFromMessage(String sid, byte[] message) throws CryptoException {
         errorIfClosed();
+        errorOnNull(sid, "sid");
+        errorOnNull(message, "message");
+
         return jniInitSessionFromMessage(ptr, sid, message);
     }
 
@@ -301,6 +333,7 @@ final public class CryptoBox implements ICryptobox {
      */
     private CryptoSession getSession(String sid) throws CryptoException {
         errorIfClosed();
+        errorOnNull(sid, "sid");
         return jniLoadSession(ptr, sid);
     }
 
@@ -313,6 +346,7 @@ final public class CryptoBox implements ICryptobox {
      * @param sid The ID of the session to get.
      */
     private CryptoSession tryGetSession(String sid) throws CryptoException {
+        errorOnNull(sid, "sid");
         try {
             return getSession(sid);
         } catch (final CryptoException ex) {
@@ -321,26 +355,6 @@ final public class CryptoBox implements ICryptobox {
             }
             throw ex;
         }
-    }
-
-    /**
-     * Delete a session.
-     * <p>
-     * If the session is currently loaded, it is automatically closed before
-     * being deleted.
-     * </p>
-     * <p>Note: After a session has been deleted, further messages received from
-     * the peer can no longer be decrypted. </p>
-     *
-     * @param sid The ID of the session to delete.
-     */
-    private void deleteSession(String sid) throws CryptoException {
-        errorIfClosed();
-        final CryptoSession cryptoSession = getSession(sid);
-        if (cryptoSession != null) {
-            cryptoSession.close();
-        }
-        jniDeleteSession(ptr, sid);
     }
 
     /**
@@ -371,7 +385,28 @@ final public class CryptoBox implements ICryptobox {
         }
     }
 
-    @SuppressWarnings("deprecation")
+    /**
+     * Delete a session.
+     * <p>
+     * If the session is currently loaded, it is automatically closed before
+     * being deleted.
+     * </p>
+     * <p>Note: After a session has been deleted, further messages received from
+     * the peer can no longer be decrypted. </p>
+     *
+     * @param sid The ID of the session to delete.
+     */
+    private void deleteSession(String sid) throws CryptoException {
+        errorIfClosed();
+        errorOnNull(sid, "sid");
+
+        final CryptoSession cryptoSession = getSession(sid);
+        if (cryptoSession != null) {
+            cryptoSession.close();
+        }
+        jniDeleteSession(ptr, sid);
+    }
+
     @Override
     protected void finalize() throws Throwable {
         close();

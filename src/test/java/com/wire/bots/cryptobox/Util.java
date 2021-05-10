@@ -14,6 +14,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Util {
     public static void deleteDir(String dir) throws IOException {
         Path rootPath = Paths.get(dir);
+        if (!rootPath.toFile().exists()) return;
+
+        // we don't need to know if the files were deleted or not
+        //noinspection ResultOfMethodCallIgnored
         Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
@@ -24,5 +28,4 @@ public class Util {
         assertArrayEquals(decrypt, text.getBytes());
         assertEquals(text, new String(decrypt));
     }
-
 }

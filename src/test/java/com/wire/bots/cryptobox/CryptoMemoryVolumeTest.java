@@ -1,7 +1,7 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CryptoMemoryVolumeTest {
-    private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
+    private ScheduledExecutorService executor;
 
-    @BeforeAll
-    public static void clean() throws IOException {
-        Util.deleteDir("data");
+    @BeforeEach
+    public void setUp() {
+        executor = new ScheduledThreadPoolExecutor(12);
     }
 
     @Test
@@ -55,11 +55,12 @@ public class CryptoMemoryVolumeTest {
                     bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
                 } catch (Exception e) {
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
             });
         }
         executor.shutdown();
+        //noinspection ResultOfMethodCallIgnored
         executor.awaitTermination(60, TimeUnit.SECONDS);
 
         Date e = new Date();
