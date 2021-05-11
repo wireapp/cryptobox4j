@@ -16,7 +16,7 @@
 package com.wire.bots.cryptobox;
 
 /**
- * A <tt>PreKey</tt> contains all the necessary public key material
+ * A {@code PreKey}contains all the necessary public key material
  * for a remote peer to initiate a session with the owner of the prekey.
  */
 final public class PreKey {

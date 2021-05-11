@@ -19,25 +19,25 @@ import java.io.File;
 
 /**
  * <p>
- * A <tt>CryptoBox</tt> is an opaque container of all the necessary key material
+ * A {@code CryptoBox} is an opaque container of all the necessary key material
  * needed for exchanging end-to-end encrypted messages with peers for a single,
  * logical client or device. It maintains a pool of {@link CryptoSession}s for
  * all remote peers.
  * </p>
  * <p>Every cryptographic session with a peer is represented by a {@link CryptoSession}.
- * These sessions are pooled by a <tt>CryptoBox</tt>, i.e. if a session with the
+ * These sessions are pooled by a {@code CryptoBox}, i.e. if a session with the
  * same session ID is requested multiple times, the same instance is returned.
- * Consequently, <tt>CryptoSession</tt>s are kept in memory once loaded. They
+ * Consequently, {@code CryptoSession}s are kept in memory once loaded. They
  * can be explicitly closed through  or {@link CryptoBox}.
  * All loaded sessions are implicitly closed
- * when the <tt>CryptoBox</tt> itself is closed via {@link CryptoBox#close()}.
- * Note that it is considered programmer error to let a <tt>CryptoBox</tt>
+ * when the {@code CryptoBox} itself is closed via {@link CryptoBox#close()}.
+ * Note that it is considered programmer error to let a {@code CryptoBox}
  * become unreachable and thus eligible for garbage collection without having
  * called {@link CryptoBox#close()}, even though this class overrides {@link Object#finalize()}
  * as an additional safety net for deallocating all native resources.
  * </p>
  *
- * <p>A <tt>CryptoBox</tt> is thread-safe.</p>
+ * <p>A {@code CryptoBox} is thread-safe.</p>
  *
  * @see CryptoSession
  */
@@ -71,7 +71,7 @@ final public class CryptoBox implements ICryptobox {
     }
 
     /**
-     * Open a <tt>CryptoBox</tt> that operates on the given directory.
+     * Open a {@code CryptoBox} that operates on the given directory.
      * <p>
      * The given directory must exist and be writeable.
      * </p>
@@ -90,11 +90,11 @@ final public class CryptoBox implements ICryptobox {
     }
 
     /**
-     * Open a <tt>CryptoBox</tt> that operates on the given directory, using
+     * Open a {@code CryptoBox} that operates on the given directory, using
      * an existing external identity.
      * <p>
      * The given identity must match the (public or complete) identity that
-     * the <tt>CryptoBox</tt> already has, if any.
+     * the {@code CryptoBox} already has, if any.
      * </p>
      * <p>The given directory must exist and be writeable.</p>
      * <p>Note: Do not open multiple boxes that operate on the same or
@@ -162,7 +162,7 @@ final public class CryptoBox implements ICryptobox {
     private native static void jniClose(long ptr);
 
     /**
-     * Copy the long-term identity from this <tt>CryptoBox</tt>.
+     * Copy the long-term identity from this {@code CryptoBox}.
      *
      * @return The opaque, serialised identity to be stored in a safe place or
      * transmitted over a safe channel for subsequent use with
@@ -203,9 +203,9 @@ final public class CryptoBox implements ICryptobox {
     /**
      * Generate a new batch of ephemeral prekeys.
      * <p>
-     * If <tt>start + num {@literal >} {@link #MAX_PREKEY_ID}</tt> the IDs wrap around and start
+     * If {@code start + num {@literal >} {@link #MAX_PREKEY_ID}} the IDs wrap around and start
      * over at 0. Thus after any valid invocation of this method, the last generated
-     * prekey ID is always <tt>(start + num) % ({@link #MAX_PREKEY_ID} + 1)</tt>. The caller
+     * prekey ID is always {@code (start + num) % ({@link #MAX_PREKEY_ID} + 1)}. The caller
      * can remember that ID and feed it back into this method as the start
      * ID when the next batch of ephemeral keys needs to be generated.
      *
@@ -358,10 +358,10 @@ final public class CryptoBox implements ICryptobox {
     }
 
     /**
-     * Close the <tt>CryptoBox</tt>.
+     * Close the {@code CryptoBox}.
      *
      * <p>Note: After a box has been closed, any operations other than
-     * <tt>close</tt> are considered programmer error and result in
+     * {@code close} are considered programmer error and result in
      * an {@link IllegalStateException}.</p>
      *
      * <p>If the box is already closed, this is a no-op.</p>
@@ -408,7 +408,7 @@ final public class CryptoBox implements ICryptobox {
     }
 
     @Override
-    protected void finalize() throws Throwable {
+    protected void finalize() {
         close();
     }
 

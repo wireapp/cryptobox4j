@@ -18,11 +18,11 @@ package com.wire.bots.cryptobox;
 import java.io.Closeable;
 
 /**
- * A <tt>CryptoSession</tt> represents a cryptographic session with a peer
+ * A {@code CryptoSession} represents a cryptographic session with a peer
  * (e.g. client or device) and is used to encrypt and decrypt messages sent
  * and received, respectively.
  * <p>
- * <p>A <tt>CryptoSession</tt> is thread-safe.</p>
+ * <p>A {@code CryptoSession} is thread-safe.</p>
  */
 final class CryptoSession implements Closeable {
     private final long boxPtr;
@@ -126,7 +126,7 @@ final class CryptoSession implements Closeable {
     }
 
     @Override
-    protected void finalize() throws Throwable {
+    protected void finalize() {
         close();
     }
 
