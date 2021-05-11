@@ -2,9 +2,9 @@ name: Release to Maven Central
 
 on:
   workflow_dispatch:
-#  push:
-#    branches:
-#      - maven-pipelines
+  push:
+    branches:
+      - maven-pipelines
 
 jobs:
   tests:
@@ -71,4 +71,4 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_CI }}
         # Send message only if previous step failed
-        if: allways()
+        if: always()
