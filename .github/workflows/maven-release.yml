@@ -2,9 +2,8 @@ name: Release to Maven Central
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - maven-pipelines
+  release:
+    types: [ published ]
 
 jobs:
   tests:
