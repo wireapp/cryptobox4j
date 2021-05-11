@@ -6,7 +6,7 @@
 
     <groupId>com.wire</groupId>
     <artifactId>cryptobox4j</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
 
     <name>Cryptobox4J</name>
     <description>CryptoBox for Wire Bots</description>
