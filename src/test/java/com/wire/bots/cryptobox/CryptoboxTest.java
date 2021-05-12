@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.wire.bots.cryptobox.Util.assertDecrypted;
@@ -145,6 +146,7 @@ public class CryptoboxTest {
 
         ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
         Date s = new Date();
+        AtomicBoolean testFailed = new AtomicBoolean(false);
         for (CryptoBox bob : boxes) {
             executor.execute(() -> {
                 try {
@@ -153,6 +155,7 @@ public class CryptoboxTest {
                 } catch (CryptoException e) {
                     System.out.println("testConcurrentDifferentCBSessions: " + e.getMessage());
                     e.printStackTrace();
+                    testFailed.set(true);
                 }
             });
         }
@@ -171,6 +174,10 @@ public class CryptoboxTest {
             bob.close();
         }
         alice.close();
+
+        if (testFailed.get()) {
+            Assertions.fail("See logs");
+        }
     }
 
     private static String hexify(byte[] bytes) {
