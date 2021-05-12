@@ -21,11 +21,11 @@ RUN apt-get install -qqy --no-install-recommends \
     	libc6-dev-i386 \
     	sudo \
     	curl \
-    	openjdk-8-jdk \
+    	openjdk-11-jdk \
     	maven
 
-# set correct java home for Java 8 and select it as correct java
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# set correct java home for Java 11
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # install rust
