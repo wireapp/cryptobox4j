@@ -32,9 +32,9 @@ jobs:
         uses: 8398a7/action-slack@v2
         with:
           status: ${{ job.status }}
-          author_name: Test execution before release
+          author_name: Cryptobox4j - Test execution before release
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_CI }}
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
         if: failure()
 
   docker-release:
@@ -96,6 +96,6 @@ jobs:
           status: ${{ job.status }}
           author_name: Cryptobox4j - Wire Bot Runtime Docker Release
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_CI }}
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
         # Send message only if previous step failed
         if: always()

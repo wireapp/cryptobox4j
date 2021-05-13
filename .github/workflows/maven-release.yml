@@ -25,9 +25,9 @@ jobs:
         uses: 8398a7/action-slack@v2
         with:
           status: ${{ job.status }}
-          author_name: Test execution before release
+          author_name: Cryptobox4j - Test execution before release
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_CI }}
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
         if: failure()
 
   release:
@@ -67,8 +67,8 @@ jobs:
         uses: 8398a7/action-slack@v2
         with:
           status: ${{ job.status }}
-          author_name: Release to Maven Central
+          author_name: Cryptobox4j - Library Release to Maven Central
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_CI }}
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
         # Send message only if previous step failed
         if: always()
