@@ -2,6 +2,7 @@ package com.wire.bots.cryptobox;
 
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CryptoMemoryConcurrentTest {
     private String bobId;
@@ -43,11 +45,12 @@ public class CryptoMemoryConcurrentTest {
 
     @Test
     public void testConcurrentSessions() throws Exception {
-        byte[] b = alice.encryptFromPreKeys(bobId, bobKeys[0], "Hello".getBytes());
+        byte[] b = alice.encryptFromPreKeys(bobId, bobKeys[0], "Hello Bob!".getBytes());
         bob.decrypt(aliceId, b);
-        b = bob.encryptFromPreKeys(aliceId, aliceKeys[0], "Hello".getBytes());
+        b = bob.encryptFromPreKeys(aliceId, aliceKeys[0], "Hello Alice!".getBytes());
         alice.decrypt(bobId, b);
 
+        AtomicBoolean testFailed = new AtomicBoolean(false);
         for (int i = 0; i < 5000; i++) {
             executor.execute(() -> {
                 try {
@@ -57,12 +60,16 @@ public class CryptoMemoryConcurrentTest {
                     alice.decrypt(bobId, cipher);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    testFailed.set(true);
                 }
             });
         }
         executor.shutdown();
         //noinspection ResultOfMethodCallIgnored
         executor.awaitTermination(20, TimeUnit.SECONDS);
+        if (testFailed.get()) {
+            Assertions.fail("See logs.");
+        }
     }
 
     static class _Storage implements IStorage {

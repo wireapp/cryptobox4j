@@ -1,6 +1,7 @@
 package com.wire.bots.cryptobox;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CryptoMemoryVolumeTest {
@@ -49,6 +51,7 @@ public class CryptoMemoryVolumeTest {
         }
 
         Date s = new Date();
+        AtomicBoolean testFailed = new AtomicBoolean(false);
         for (CryptoDb bob : boxes) {
             executor.execute(() -> {
                 try {
@@ -56,6 +59,7 @@ public class CryptoMemoryVolumeTest {
                     counter.getAndIncrement();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    testFailed.set(true);
                 }
             });
         }
@@ -72,6 +76,10 @@ public class CryptoMemoryVolumeTest {
         alice.close();
         for (CryptoDb bob : boxes) {
             bob.close();
+        }
+
+        if (testFailed.get()) {
+            Assertions.fail("See logs");
         }
     }
 }
