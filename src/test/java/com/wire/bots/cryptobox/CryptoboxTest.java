@@ -62,7 +62,7 @@ public class CryptoboxTest {
 
         assertDecrypted(decrypt, text);
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 2000; i++) {
             // Encrypt using session
             cipher = alice.encryptFromSession(bobId, text.getBytes());
 
@@ -83,6 +83,16 @@ public class CryptoboxTest {
         byte[] decrypt = alice.decrypt(bobId, cipher);
 
         assertDecrypted(decrypt, text);
+
+        for (int i = 0; i < 2000; i++) {
+            // Encrypt using session
+            cipher = bob.encryptFromSession(aliceId, text.getBytes());
+
+            // Decrypt using session
+            decrypt = alice.decrypt(bobId, cipher);
+
+            assertDecrypted(decrypt, text);
+        }
     }
 
     @Test
