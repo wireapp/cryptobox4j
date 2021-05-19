@@ -11,7 +11,7 @@ COPY --from=cryptobox /wire/cryptobox/dist/lib /opt/wire/lib
 # copy prometheus agent
 COPY --from=cryptobox /wire/cryptobox/dist/jar/prometheus-agent.jar /opt/wire/lib/
 # copy metrics seettings
-COPY metrics.yaml /opt/wire/lib/metrics.yaml
+COPY dockerfiles/metrics.yaml /opt/wire/lib/metrics.yaml
 
 # enable crypto https://stackoverflow.com/a/42163925/7169288
 # it should be enabled by default, we're doing this just to be sure

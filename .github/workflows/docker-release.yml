@@ -1,0 +1,101 @@
+name: Docker Images Release
+
+on:
+  workflow_dispatch:
+  schedule:
+    # At 01:00 on Saturday - build and publish images each saturday at 1:00
+    - cron: '0 1 * * 6'
+  release:
+    types: [ published ]
+
+env:
+  CRYPTOBOX_IMAGE: wirebot/cryptobox
+  RUNTIME_IMAGE: wirebot/runtime
+
+jobs:
+  tests:
+    name: Execute tests
+    runs-on: ubuntu-20.04
+    container: wirebot/cryptobox:latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Execute Tests
+        run: |
+          mvn test -DargLine="-Djava.library.path=$LD_LIBRARY_PATH"
+
+      - name: Try to create package
+        run: |
+          mvn package -DskipTests
+
+      - name: Webhook to Wire
+        uses: 8398a7/action-slack@v2
+        with:
+          status: ${{ job.status }}
+          author_name: Cryptobox4j - Test execution before release
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
+        if: failure()
+
+  docker-release:
+    name: Release Docker Runtime
+    runs-on: ubuntu-20.04
+    needs: [ tests ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: Set Release Version
+        # use the version specified in the pom.xml as the tag
+        run: |
+          export MVN_VERSION=$(mvn -q \
+              -Dexec.executable=echo \
+              -Dexec.args='${project.version}' \
+              --non-recursive \
+              exec:exec)
+          echo "RELEASE_VERSION=${MVN_VERSION}" >> $GITHUB_ENV
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: wirebot
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and Tag Cryptobox Image
+        run: |
+          docker build -f dockerfiles/Dockerfile.cryptobox \
+            -t ${{ env.CRYPTOBOX_IMAGE }}:latest \
+            -t ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }} \
+            .
+
+      - name: Push Cryptobox Image
+        run: |
+          docker push ${{ env.CRYPTOBOX_IMAGE }}:latest
+          docker push ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }}
+
+      - name: Build and Tag Bots Runtime
+        run: |
+          docker build -f dockerfiles/Dockerfile.runtime \
+            -t ${{ env.RUNTIME_IMAGE }}:latest \
+            -t ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }} \
+            .
+
+      - name: Push Runtime Image
+        run: |
+          docker push ${{ env.RUNTIME_IMAGE }}:latest
+          docker push ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }}
+
+      # Send webhook to Wire using Slack Bot
+      - name: Webhook to Wire
+        uses: 8398a7/action-slack@v2
+        with:
+          status: ${{ job.status }}
+          author_name: Cryptobox4j - Wire Bot Runtime Docker Release
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
+        # Send message only if previous step failed
+        if: always()

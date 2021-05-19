@@ -1,7 +1,8 @@
 package com.wire.bots.cryptobox;
 
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -11,14 +12,15 @@ import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CryptoMemoryVolumeTest {
-    private final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(12);
+    private ScheduledExecutorService executor;
 
-    @BeforeAll
-    public static void clean() throws IOException {
-        Util.deleteDir("data");
+    @BeforeEach
+    public void setUp() {
+        executor = new ScheduledThreadPoolExecutor(12);
     }
 
     @Test
@@ -49,17 +51,20 @@ public class CryptoMemoryVolumeTest {
         }
 
         Date s = new Date();
+        AtomicBoolean testFailed = new AtomicBoolean(false);
         for (CryptoDb bob : boxes) {
             executor.execute(() -> {
                 try {
                     bob.encryptFromSession(aliceId, bytes);
                     counter.getAndIncrement();
                 } catch (Exception e) {
-                    System.out.println(e);
+                    e.printStackTrace();
+                    testFailed.set(true);
                 }
             });
         }
         executor.shutdown();
+        //noinspection ResultOfMethodCallIgnored
         executor.awaitTermination(60, TimeUnit.SECONDS);
 
         Date e = new Date();
@@ -71,6 +76,10 @@ public class CryptoMemoryVolumeTest {
         alice.close();
         for (CryptoDb bob : boxes) {
             bob.close();
+        }
+
+        if (testFailed.get()) {
+            Assertions.fail("See logs");
         }
     }
 }

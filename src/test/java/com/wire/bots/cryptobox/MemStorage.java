@@ -1,5 +1,6 @@
 package com.wire.bots.cryptobox;
 
+
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -65,7 +66,7 @@ public class MemStorage implements IStorage {
         return String.format("%s-%s", id, sid);
     }
 
-    private class Record implements IRecord {
+    private static class Record implements IRecord {
         boolean locked;
         //private final String key;
         private byte[] data;
