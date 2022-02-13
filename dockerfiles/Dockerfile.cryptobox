@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM openjdk:11-jdk
 
 # disable prompts from the txdata
 ENV DEBIAN_FRONTEND=noninteractive
@@ -17,16 +17,9 @@ RUN apt-get install -qqy --no-install-recommends \
     	pkg-config \
     	strace \
     	less \
-    	g++-multilib \
-    	libc6-dev-i386 \
     	sudo \
     	curl \
-    	openjdk-11-jdk \
     	maven
-
-# set correct java home for Java 11
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # install rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y

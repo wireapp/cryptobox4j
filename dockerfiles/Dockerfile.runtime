@@ -1,6 +1,6 @@
-FROM wirebot/cryptobox as cryptobox
+FROM wirebot/cryptobox:arm as cryptobox
 
-FROM adoptopenjdk/openjdk11:alpine-jre
+FROM openjdk:11-jre-slim
 
 RUN mkdir -p /opt/wire/lib
 # make Java to take this as java.library.path
