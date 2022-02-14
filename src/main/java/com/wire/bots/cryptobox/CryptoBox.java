@@ -1,4 +1,4 @@
-// Copyright (C) 2021 Wire Swiss GmbH <support@wire.com>
+// Copyright (C) 2022 Wire Swiss GmbH <support@wire.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ import java.io.File;
  *
  * @see CryptoSession
  */
-// we can safely ignore the creation of the the directories
+// we can safely ignore the creation of the directories
 // as they either exist and we don't care, or the operation
 // throws exception in the next steps
 @SuppressWarnings("ResultOfMethodCallIgnored")
