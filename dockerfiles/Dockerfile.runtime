@@ -1,4 +1,4 @@
-FROM wirebot/cryptobox:arm as cryptobox
+FROM wirebot/cryptobox as cryptobox
 
 FROM openjdk:11-jre-slim
 
