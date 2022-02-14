@@ -1,5 +1,5 @@
 cryptobox:
-	docker build -f Dockerfile.cryptobox -t wirebot/cryptobox ../
+	docker build --file Dockerfile --target cryptobox --tag wirebot/cryptobox ../
 
 runtime:
-	docker build -f Dockerfile.runtime -t wirebot/runtime ../
+	docker build --file Dockerfile --target runtime --tag wirebot/runtime ../

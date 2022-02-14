@@ -88,32 +88,24 @@ jobs:
       - name: Build Cryptobox
         uses: docker/build-push-action@v2
         with:
-          file: dockerfiles/Dockerfile.cryptobox
+          file: dockerfiles/Dockerfile
           context: .
+          target: cryptobox
           tags: ${{ env.CRYPTOBOX_IMAGE }}:latest, ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }}
           labels: ${{ steps.docker_meta_cryptobox.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          load: true
+          push: true
 
       - name: Build Runtime
         uses: docker/build-push-action@v2
         with:
-          file: dockerfiles/Dockerfile.runtime
+          file: dockerfiles/Dockerfile
           context: .
+          target: runtime
           tags: ${{ env.RUNTIME_IMAGE }}:latest, ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }}
           labels: ${{ steps.docker_meta_runtime.outputs.labels }}
           platforms: linux/amd64,linux/arm64
-          load: true
-
-      - name: Push Cryptobox Image
-        run: |
-          docker push ${{ env.CRYPTOBOX_IMAGE }}:latest
-          docker push ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }}
-
-      - name: Push Runtime Image
-        run: |
-          docker push ${{ env.RUNTIME_IMAGE }}:latest
-          docker push ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }}
+          push: true
 
       # Send webhook to Wire using Slack Bot
       - name: Webhook to Wire
