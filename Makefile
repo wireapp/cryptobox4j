@@ -143,10 +143,10 @@ install-java: compile
 
 #############################################################################
 # docker stuff
-docker-build: docker-cryptobox docker-bots-base
-
-docker-bots-base:
-	docker build -f dockerfiles/Dockerfile.runtime -t wirebot/runtime .
+docker-build: docker-cryptobox docker-runtime
 
 docker-cryptobox:
-	docker build -f dockerfiles/Dockerfile.cryptobox -t wirebot/cryptobox .
+	docker build --file dockerfiles/Dockerfile --target cryptobox --tag wirebot/cryptobox .
+
+docker-runtime:
+	docker build --file dockerfiles/Dockerfile --target runtime --tag wirebot/runtime .

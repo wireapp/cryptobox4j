@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM openjdk:11-jdk as cryptobox
 
 # disable prompts from the txdata
 ENV DEBIAN_FRONTEND=noninteractive
@@ -17,16 +17,9 @@ RUN apt-get install -qqy --no-install-recommends \
     	pkg-config \
     	strace \
     	less \
-    	g++-multilib \
-    	libc6-dev-i386 \
     	sudo \
     	curl \
-    	openjdk-11-jdk \
     	maven
-
-# set correct java home for Java 11
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # install rust
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
@@ -53,6 +46,20 @@ COPY pom.xml .
 RUN make dist
 
 ENV LD_LIBRARY_PATH=/wire/cryptobox/dist/lib
-RUN echo "Libraries are ready in /wire/cryptobox/dist/lib"
-RUN echo "Cryptobox JAR is ready in /wire/cryptobox/dist/jar"
-RUN echo "Prometheus Agent JAR is ready in /wire/cryptobox/dist/jar"
+
+FROM openjdk:11-jre-slim as runtime
+
+RUN mkdir -p /opt/wire/lib
+# make Java to take this as java.library.path
+ENV LD_LIBRARY_PATH=/opt/wire/lib
+
+# copy cryptobox libraries
+COPY --from=cryptobox /wire/cryptobox/dist/lib /opt/wire/lib
+# copy prometheus agent
+COPY --from=cryptobox /wire/cryptobox/dist/jar/prometheus-agent.jar /opt/wire/lib/
+# copy metrics seettings
+COPY dockerfiles/metrics.yaml /opt/wire/lib/metrics.yaml
+
+# enable crypto https://stackoverflow.com/a/42163925/7169288
+# it should be enabled by default, we're doing this just to be sure
+RUN sed -i 's/^#crypto.policy=unlimited/crypto.policy=unlimited/' $JAVA_HOME/conf/security/java.security

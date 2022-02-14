@@ -59,35 +59,53 @@ jobs:
               exec:exec)
           echo "RELEASE_VERSION=${MVN_VERSION}" >> $GITHUB_ENV
 
+      # extract metadata for labels https://github.com/crazy-max/ghaction-docker-meta
+      - name: Docker meta Cryptobox
+        id: docker_meta_cryptobox
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: ${{ env.CRYPTOBOX_IMAGE }}
+
+      # extract metadata for labels https://github.com/crazy-max/ghaction-docker-meta
+      - name: Docker meta Runtime
+        id: docker_meta_runtime
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: ${{ env.RUNTIME_IMAGE }}
+
+        # setup docker actions https://github.com/docker/build-push-action
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           username: wirebot
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Build and Tag Cryptobox Image
-        run: |
-          docker build -f dockerfiles/Dockerfile.cryptobox \
-            -t ${{ env.CRYPTOBOX_IMAGE }}:latest \
-            -t ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }} \
-            .
+      - name: Build Cryptobox
+        uses: docker/build-push-action@v2
+        with:
+          file: dockerfiles/Dockerfile
+          context: .
+          target: cryptobox
+          tags: ${{ env.CRYPTOBOX_IMAGE }}:latest, ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }}
+          labels: ${{ steps.docker_meta_cryptobox.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          push: true
 
-      - name: Push Cryptobox Image
-        run: |
-          docker push ${{ env.CRYPTOBOX_IMAGE }}:latest
-          docker push ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }}
-
-      - name: Build and Tag Bots Runtime
-        run: |
-          docker build -f dockerfiles/Dockerfile.runtime \
-            -t ${{ env.RUNTIME_IMAGE }}:latest \
-            -t ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }} \
-            .
-
-      - name: Push Runtime Image
-        run: |
-          docker push ${{ env.RUNTIME_IMAGE }}:latest
-          docker push ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }}
+      - name: Build Runtime
+        uses: docker/build-push-action@v2
+        with:
+          file: dockerfiles/Dockerfile
+          context: .
+          target: runtime
+          tags: ${{ env.RUNTIME_IMAGE }}:latest, ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }}
+          labels: ${{ steps.docker_meta_runtime.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          push: true
 
       # Send webhook to Wire using Slack Bot
       - name: Webhook to Wire
