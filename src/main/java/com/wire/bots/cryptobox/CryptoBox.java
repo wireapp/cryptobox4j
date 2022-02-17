@@ -338,6 +338,17 @@ final public class CryptoBox implements ICryptobox {
     }
 
     /**
+     * Determines whether the requested session exist or not.
+     *
+     * @param sid The ID of the session.
+     * @return true if the given session ID exists, false otherwise.
+     * @throws CryptoException thrown when there's a problem with native Cryptobox.
+     */
+    public boolean doesSessionExist(String sid) throws CryptoException {
+        return tryGetSession(sid) != null;
+    }
+
+    /**
      * <p>Try to get an existing session by ID.</p>
      *
      * <p>Equivalent to {@link #getSession}, except that <tt>null</tt> is
