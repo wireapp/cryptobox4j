@@ -8,10 +8,6 @@ on:
   release:
     types: [ published ]
 
-env:
-  CRYPTOBOX_IMAGE: wirebot/cryptobox
-  RUNTIME_IMAGE: wirebot/runtime
-
 jobs:
   tests:
     uses: ./.github/workflows/native-tests.yml
@@ -23,8 +19,8 @@ jobs:
     needs: [ tests ]
     with:
       publish: true
-      cryptobox_image: ${{ env.CRYPTOBOX_IMAGE }}
-      runtime_image: ${{ env.RUNTIME_IMAGE }}
+      cryptobox_image: wirebot/cryptobox
+      runtime_image: wirebot/runtime
       platform: linux/arm64
     secrets:
       docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -35,8 +31,8 @@ jobs:
     needs: [ tests ]
     with:
       publish: true
-      cryptobox_image: ${{ env.CRYPTOBOX_IMAGE }}
-      runtime_image: ${{ env.RUNTIME_IMAGE }}
+      cryptobox_image: wirebot/cryptobox
+      runtime_image: wirebot/runtime
       platform: linux/amd64
     secrets:
       docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
