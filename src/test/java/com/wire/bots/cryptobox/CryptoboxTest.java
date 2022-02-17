@@ -44,6 +44,10 @@ public class CryptoboxTest {
 
         bobKeys = bob.newPreKeys(0, 8);
         aliceKeys = alice.newPreKeys(0, 8);
+
+        // there are no sessions at the beginning
+        Assertions.assertFalse(alice.doesSessionExist(bobId));
+        Assertions.assertFalse(bob.doesSessionExist(aliceId));
     }
 
     @AfterEach
@@ -60,11 +64,14 @@ public class CryptoboxTest {
 
         // Encrypt using prekeys
         byte[] cipher = alice.encryptFromPreKeys(bobId, bobKeys[0], text.getBytes());
+        Assertions.assertTrue(alice.doesSessionExist(bobId));
 
         // Decrypt using initSessionFromMessage
         byte[] decrypt = bob.decrypt(aliceId, cipher);
 
         assertDecrypted(decrypt, text);
+        // the session with alice should now exist
+        Assertions.assertTrue(bob.doesSessionExist(aliceId));
 
         for (int i = 0; i < 2000; i++) {
             // Encrypt using session
@@ -74,6 +81,9 @@ public class CryptoboxTest {
             decrypt = bob.decrypt(aliceId, cipher);
 
             assertDecrypted(decrypt, text);
+            // assert that they didn't lose the session
+            Assertions.assertTrue(alice.doesSessionExist(bobId));
+            Assertions.assertTrue(bob.doesSessionExist(aliceId));
         }
     }
 

@@ -1,8 +1,12 @@
-name: Code Check
+name: Docker Images Release
 
 on:
   workflow_dispatch:
-  pull_request:
+  schedule:
+    # At 01:00 on Saturday - build and publish images each saturday at 1:00
+    - cron: '0 1 * * 6'
+  release:
+    types: [ published ]
 
 jobs:
   tests:
@@ -11,11 +15,11 @@ jobs:
       webhook: ${{ secrets.WEBHOOK_RELEASE }}
 
   # TODO: figure out why ARM builds fail after 1h in Github Actions
-  #  test_docker_arm64:
+  #  release_docker_arm64:
   #    uses: ./.github/workflows/docker.yml
   #    needs: [ tests ]
   #    with:
-  #      publish: false
+  #      publish: true
   #      cryptobox_image: wirebot/cryptobox
   #      runtime_image: wirebot/runtime
   #      platform: linux/arm64
@@ -23,11 +27,11 @@ jobs:
   #      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
   #      webhook: ${{ secrets.WEBHOOK_RELEASE }}
 
-  test_docker_amd64:
+  release_docker_amd64:
     uses: ./.github/workflows/docker.yml
     needs: [ tests ]
     with:
-      publish: false
+      publish: true
       cryptobox_image: wirebot/cryptobox
       runtime_image: wirebot/runtime
       platform: linux/amd64
