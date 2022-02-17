@@ -10,7 +10,7 @@ jobs:
     secrets:
       webhook: ${{ secrets.WEBHOOK_RELEASE }}
 
-  release_docker_arm64:
+  test_docker_arm64:
     uses: ./.github/workflows/docker.yml
     needs: [ tests ]
     with:
@@ -22,7 +22,7 @@ jobs:
       docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
       webhook: ${{ secrets.WEBHOOK_RELEASE }}
 
-  release_docker_amd64:
+  test_docker_amd64:
     uses: ./.github/workflows/docker.yml
     needs: [ tests ]
     with:

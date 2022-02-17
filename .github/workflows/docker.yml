@@ -87,7 +87,7 @@ jobs:
           file: dockerfiles/Dockerfile
           context: .
           target: runtime
-          tags: ${{ inputs.runtime_image }}:latest, ${{ inputs.runtime_image }}:${{ inputs.runtime_image }}
+          tags: ${{ inputs.runtime_image }}:latest, ${{ inputs.runtime_image }}:${{ env.RELEASE_VERSION }}
           labels: ${{ steps.docker_meta_runtime.outputs.labels }}
           platforms: ${{ inputs.platform }}
           push: ${{ inputs.publish }}
