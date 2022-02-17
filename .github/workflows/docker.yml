@@ -1,46 +1,31 @@
-name: Docker Images Release
+name: Docker Release
 
 on:
-  workflow_dispatch:
-  schedule:
-    # At 01:00 on Saturday - build and publish images each saturday at 1:00
-    - cron: '0 1 * * 6'
-  release:
-    types: [ published ]
-
-env:
-  CRYPTOBOX_IMAGE: wirebot/cryptobox
-  RUNTIME_IMAGE: wirebot/runtime
+  workflow_call:
+    inputs:
+      publish:
+        required: false
+        default: false
+        type: boolean
+      cryptobox_image:
+        required: true
+        type: string
+      runtime_image:
+        required: true
+        type: string
+      platform:
+        required: true
+        type: string
+    secrets:
+      docker_password:
+        required: true
+      webhook:
+        required: true
 
 jobs:
-  tests:
-    name: Execute tests
-    runs-on: ubuntu-20.04
-    container: wirebot/cryptobox:latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Execute Tests
-        run: |
-          mvn test -DargLine="-Djava.library.path=$LD_LIBRARY_PATH"
-
-      - name: Try to create package
-        run: |
-          mvn package -DskipTests
-
-      - name: Webhook to Wire
-        uses: 8398a7/action-slack@v2
-        with:
-          status: ${{ job.status }}
-          author_name: Cryptobox4j - Test execution before release
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
-        if: failure()
-
-  docker-release:
-    name: Release Docker Runtime
-    runs-on: ubuntu-20.04
-    needs: [ tests ]
+  docker_release:
+    name: Release Docker Cryptobox & Runtime
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -64,14 +49,14 @@ jobs:
         id: docker_meta_cryptobox
         uses: crazy-max/ghaction-docker-meta@v1
         with:
-          images: ${{ env.CRYPTOBOX_IMAGE }}
+          images: ${{ inputs.cryptobox_image }}
 
       # extract metadata for labels https://github.com/crazy-max/ghaction-docker-meta
       - name: Docker meta Runtime
         id: docker_meta_runtime
         uses: crazy-max/ghaction-docker-meta@v1
         with:
-          images: ${{ env.RUNTIME_IMAGE }}
+          images: ${{ inputs.runtime_image }}
 
         # setup docker actions https://github.com/docker/build-push-action
       - name: Set up QEMU
@@ -83,7 +68,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           username: wirebot
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.docker_password }}
 
       - name: Build Cryptobox
         uses: docker/build-push-action@v2
@@ -91,10 +76,10 @@ jobs:
           file: dockerfiles/Dockerfile
           context: .
           target: cryptobox
-          tags: ${{ env.CRYPTOBOX_IMAGE }}:latest, ${{ env.CRYPTOBOX_IMAGE }}:${{ env.RELEASE_VERSION }}
+          tags: ${{ inputs.cryptobox_image }}:latest, ${{ inputs.cryptobox_image }}:${{ env.RELEASE_VERSION }}
           labels: ${{ steps.docker_meta_cryptobox.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-          push: true
+          platforms: ${{ inputs.platform }}
+          push: ${{ inputs.publish }}
 
       - name: Build Runtime
         uses: docker/build-push-action@v2
@@ -102,18 +87,17 @@ jobs:
           file: dockerfiles/Dockerfile
           context: .
           target: runtime
-          tags: ${{ env.RUNTIME_IMAGE }}:latest, ${{ env.RUNTIME_IMAGE }}:${{ env.RELEASE_VERSION }}
+          tags: ${{ inputs.runtime_image }}:latest, ${{ inputs.runtime_image }}:${{ inputs.runtime_image }}
           labels: ${{ steps.docker_meta_runtime.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-          push: true
+          platforms: ${{ inputs.platform }}
+          push: ${{ inputs.publish }}
 
       # Send webhook to Wire using Slack Bot
       - name: Webhook to Wire
         uses: 8398a7/action-slack@v2
         with:
           status: ${{ job.status }}
-          author_name: Cryptobox4j - Wire Bot Runtime Docker Release
+          author_name: Cryptobox4j - Wire Bot Runtime Docker Release Platform ${{ inputs.platform }}
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_RELEASE }}
-        # Send message only if previous step failed
-        if: always()
+          SLACK_WEBHOOK_URL: ${{ secrets.webhook }}
+        if: failure()

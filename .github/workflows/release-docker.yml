@@ -1,8 +1,12 @@
-name: Code Check
+name: Docker Images Release
 
 on:
   workflow_dispatch:
-  pull_request:
+  schedule:
+    # At 01:00 on Saturday - build and publish images each saturday at 1:00
+    - cron: '0 1 * * 6'
+  release:
+    types: [ published ]
 
 env:
   CRYPTOBOX_IMAGE: wirebot/cryptobox
@@ -18,7 +22,7 @@ jobs:
     uses: ./.github/workflows/docker.yml
     needs: [ tests ]
     with:
-      publish: false
+      publish: true
       cryptobox_image: ${{ env.CRYPTOBOX_IMAGE }}
       runtime_image: ${{ env.RUNTIME_IMAGE }}
       platform: linux/arm64
@@ -30,7 +34,7 @@ jobs:
     uses: ./.github/workflows/docker.yml
     needs: [ tests ]
     with:
-      publish: false
+      publish: true
       cryptobox_image: ${{ env.CRYPTOBOX_IMAGE }}
       runtime_image: ${{ env.RUNTIME_IMAGE }}
       platform: linux/amd64
