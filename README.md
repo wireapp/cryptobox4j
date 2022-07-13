@@ -8,6 +8,6 @@ See makefiles in [mk](mk) directory.
 <dependency>
   <groupId>com.wire</groupId>
   <artifactId>cryptobox4j</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.2</version>
 </dependency>
 ```
