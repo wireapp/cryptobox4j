@@ -137,6 +137,26 @@ final public class CryptoBox implements ICryptobox {
         return jniGetFingerprintFromPrekey(preKey.data);
     }
 
+    /**
+     * Ensures that the given prekey is valid. Throws exception if the prekey is not valid.
+     *
+     * @param preKey prekey to validate.
+     * @throws CryptoException          from native code if it is not valid prekey with {@link CryptoException#code} equals to
+     *                                  {@link CryptoException.Code#DECODE_ERROR}.
+     * @throws IllegalArgumentException if the {@link PreKey#id} is not valid.
+     */
+    public static void isPrekey(PreKey preKey) throws CryptoException {
+        errorOnNull(preKey, "preKey");
+        errorOnNull(preKey.data, "preKey.data");
+        errorOnNull(preKey.id, "preKey.id");
+
+        if (preKey.id < 0 || preKey.id > MAX_PREKEY_ID) {
+            throw new IllegalArgumentException("ID of the prekey must be between 0 and " + MAX_PREKEY_ID + "!");
+        }
+
+        jniIsPreKey(preKey.data, preKey.id);
+    }
+
     private native static CryptoBox jniOpen(String dir) throws CryptoException;
 
     private native static CryptoBox jniOpenWith(String dir, byte[] id, int mode) throws CryptoException;
@@ -160,6 +180,9 @@ final public class CryptoBox implements ICryptobox {
     private native static byte[] jniCopyIdentity(long ptr) throws CryptoException;
 
     private native static void jniClose(long ptr);
+
+    private native static void jniIsPreKey(byte[] prekey, int prekeyId) throws CryptoException;
+
 
     /**
      * Copy the long-term identity from this {@code CryptoBox}.
