@@ -89,7 +89,7 @@ jobs:
           target: runtime
           tags: ${{ inputs.runtime_image }}:latest, ${{ inputs.runtime_image }}:${{ env.RELEASE_VERSION }}
           labels: ${{ steps.docker_meta_runtime.outputs.labels }}
-          platforms: ${{ inputs.platform }}
+          platforms: ${{ inputs.platforms }}
           push: ${{ inputs.publish }}
 
       # Send webhook to Wire using Slack Bot
