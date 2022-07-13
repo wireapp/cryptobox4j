@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -56,6 +57,44 @@ public class CryptoboxTest {
         bob.close();
 
         Util.deleteDir(rootFolder);
+    }
+
+    @Test
+    public void testAllGeneratedPrekeysAreValid() {
+        // check bob keys
+        for (PreKey key : bobKeys) {
+            Assertions.assertDoesNotThrow(() -> CryptoBox.isPrekey(key));
+        }
+        // now check alice keys
+        for (PreKey key : aliceKeys) {
+            Assertions.assertDoesNotThrow(() -> CryptoBox.isPrekey(key));
+        }
+    }
+
+    @Test
+    public void testIsPrekeyThrowsOnInvalidKey() throws Exception {
+        // first generate prekeys
+        int maxPrekey = 0xFFFE;
+        Random rd = new Random();
+        int prekeysCount = 100;
+        int randomStart = rd.nextInt(maxPrekey - prekeysCount);
+        PreKey[] keys = bob.newPreKeys(randomStart, prekeysCount);
+        Assertions.assertEquals(prekeysCount, keys.length);
+
+        // check that all generated keys are valid
+        for (PreKey key : keys) {
+            Assertions.assertDoesNotThrow(() -> CryptoBox.isPrekey(key));
+        }
+        // now we change random bytes which results in invalid prekeys
+        for (PreKey key : keys) {
+            byte[] bytes = key.data.clone();
+            rd.nextBytes(bytes);
+            Assertions.assertThrows(CryptoException.class, () -> CryptoBox.isPrekey(new PreKey(key.id, bytes)));
+        }
+
+        // also the IDs should be bound
+        Assertions.assertThrows(IllegalArgumentException.class, () -> CryptoBox.isPrekey(new PreKey(-1, keys[0].data)));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> CryptoBox.isPrekey(new PreKey(maxPrekey + 1, keys[0].data)));
     }
 
     @Test
