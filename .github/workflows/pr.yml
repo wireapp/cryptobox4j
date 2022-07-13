@@ -16,7 +16,7 @@ jobs:
       publish: false
       cryptobox_image: wirebot/cryptobox
       runtime_image: wirebot/runtime
-      platform: linux/arm64
+      platforms: linux/arm64
     secrets:
       docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
       webhook: ${{ secrets.WEBHOOK_RELEASE }}
@@ -27,7 +27,7 @@ jobs:
       publish: false
       cryptobox_image: wirebot/cryptobox
       runtime_image: wirebot/runtime
-      platform: linux/amd64
+      platforms: linux/amd64
     secrets:
       docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
       webhook: ${{ secrets.WEBHOOK_RELEASE }}

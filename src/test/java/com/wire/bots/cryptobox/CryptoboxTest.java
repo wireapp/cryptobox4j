@@ -69,15 +69,18 @@ public class CryptoboxTest {
         for (PreKey key : aliceKeys) {
             Assertions.assertDoesNotThrow(() -> CryptoBox.isPrekey(key));
         }
+        // also check that last resort prekeys are validated correctly
+        Assertions.assertDoesNotThrow(() -> CryptoBox.isPrekey(bob.newLastPreKey()));
+        Assertions.assertDoesNotThrow(() -> CryptoBox.isPrekey(alice.newLastPreKey()));
     }
 
     @Test
     public void testIsPrekeyThrowsOnInvalidKey() throws Exception {
         // first generate prekeys
-        int maxPrekey = 0xFFFE;
+        int maxEphemeralPrekeyId = 65_534;
         Random rd = new Random();
         int prekeysCount = 100;
-        int randomStart = rd.nextInt(maxPrekey - prekeysCount);
+        int randomStart = rd.nextInt(maxEphemeralPrekeyId - prekeysCount);
         PreKey[] keys = bob.newPreKeys(randomStart, prekeysCount);
         Assertions.assertEquals(prekeysCount, keys.length);
 
@@ -85,6 +88,7 @@ public class CryptoboxTest {
         for (PreKey key : keys) {
             Assertions.assertDoesNotThrow(() -> CryptoBox.isPrekey(key));
         }
+
         // now we change random bytes which results in invalid prekeys
         for (PreKey key : keys) {
             byte[] bytes = key.data.clone();
@@ -94,7 +98,8 @@ public class CryptoboxTest {
 
         // also the IDs should be bound
         Assertions.assertThrows(IllegalArgumentException.class, () -> CryptoBox.isPrekey(new PreKey(-1, keys[0].data)));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> CryptoBox.isPrekey(new PreKey(maxPrekey + 1, keys[0].data)));
+        // last ephemeral prekey is 65_534, 65_535 is the last resort and thus 65_536 must be invalid
+        Assertions.assertThrows(IllegalArgumentException.class, () -> CryptoBox.isPrekey(new PreKey(maxEphemeralPrekeyId + 2, keys[0].data)));
     }
 
     @Test
