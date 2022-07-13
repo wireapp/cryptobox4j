@@ -54,9 +54,14 @@ compile-native:
 	    -o build/lib/$(LIBCRYPTOBOX_JNI)
 
 .PHONY: compile-java
-compile-java:
+compile-java: compile-native
 	export LD_LIBRARY_PATH="$(PWD)/build/lib"; \
-	mvn package -DargLine="-Djava.library.path=$$LD_LIBRARY_PATH";
+	mvn package -DskipTests -DargLine="-Djava.library.path=$$LD_LIBRARY_PATH";
+
+.PHONY: verify-java
+verify-java: compile-java
+	export LD_LIBRARY_PATH="$(PWD)/build/lib"; \
+	mvn test -DskipTests -DargLine="-Djava.library.path=$$LD_LIBRARY_PATH";
 
 .PHONY: distclean
 distclean:
