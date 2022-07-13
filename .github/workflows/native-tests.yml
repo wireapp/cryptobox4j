@@ -10,23 +10,31 @@ jobs:
   tests:
     name: Execute tests
     runs-on: ubuntu-latest
-    container: wirebot/cryptobox:latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Execute Tests
-        run: |
-          mvn test -DargLine="-Djava.library.path=$LD_LIBRARY_PATH"
+      - uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: 11
 
-      - name: Try to create package
+      - name: Build Cryptobox
         run: |
-          mvn package -DskipTests
+          make cryptobox
+
+      - name: Build Native Bindings
+        run: |
+          make compile-native
+
+      - name: Compile Cryptobox4j & Run Tests
+        run: |
+          make verify-java
 
       - name: Webhook to Wire
         uses: 8398a7/action-slack@v2
         with:
           status: ${{ job.status }}
-          author_name: Cryptobox4j - Test
+          author_name: Cryptobox4J - Test
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.webhook }}
         if: failure()
