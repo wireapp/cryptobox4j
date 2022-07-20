@@ -140,11 +140,9 @@ build/lib/$(PROMETHEUS_AGENT): build/src/$(PROMETHEUS_AGENT_NAME)
 	cp build/src/$(PROMETHEUS_AGENT_NAME)/jmx_prometheus_javaagent/target/jmx_prometheus_javaagent-$(PROMETHEUS_AGENT_VERSION).jar build/lib/$(PROMETHEUS_AGENT)
 
 #############################################################################
-# install libraries to java home
-install-java: compile
-	cp build/lib/$(LIBSODIUM) "$$JAVA_HOME/bin/"
-	cp build/lib/$(LIBCRYPTOBOX) "$$JAVA_HOME/bin/"
-	cp build/lib/$(LIBCRYPTOBOX_JNI) "$$JAVA_HOME/bin/"
+# list out folders from java.library.path
+list-java-library:
+	@(cd src/test/java && javac JavaLib.java && java JavaLib JavaLib.class)
 
 #############################################################################
 # docker stuff
