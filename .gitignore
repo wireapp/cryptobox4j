@@ -10,3 +10,4 @@ dist/
 *.log
 .DS_Store
 cryptobox-test-data-*
+*/**/*.class
