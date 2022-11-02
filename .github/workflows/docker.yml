@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 1.8
+          java-version: 8
 
       - name: Set Release Version
         # use the version specified in the pom.xml as the tag
