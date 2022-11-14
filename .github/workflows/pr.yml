@@ -10,16 +10,16 @@ jobs:
     secrets:
       webhook: ${{ secrets.WEBHOOK_RELEASE }}
 
-  test_docker_arm64:
-    uses: ./.github/workflows/docker.yml
-    with:
-      publish: false
-      cryptobox_image: wirebot/cryptobox
-      runtime_image: wirebot/runtime
-      platforms: linux/arm64
-    secrets:
-      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      webhook: ${{ secrets.WEBHOOK_RELEASE }}
+  #  test_docker_arm64:
+  #    uses: ./.github/workflows/docker.yml
+  #    with:
+  #      publish: false
+  #      cryptobox_image: wirebot/cryptobox
+  #      runtime_image: wirebot/runtime
+  #      platforms: linux/arm64
+  #    secrets:
+  #      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+  #      webhook: ${{ secrets.WEBHOOK_RELEASE }}
 
   test_docker_amd64:
     uses: ./.github/workflows/docker.yml
