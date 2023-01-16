@@ -67,6 +67,7 @@ jobs:
 
       - name: Login to DockerHub
         uses: docker/login-action@v2
+        if: ${{ inputs.publish }}
         with:
           username: wirebot
           password: ${{ secrets.docker_password }}
