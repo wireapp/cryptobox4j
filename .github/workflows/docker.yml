@@ -73,7 +73,7 @@ jobs:
           password: ${{ secrets.docker_password }}
 
       - name: Build Cryptobox
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: dockerfiles/Dockerfile
           context: .
@@ -84,7 +84,7 @@ jobs:
           push: ${{ inputs.publish }}
 
       - name: Build Runtime
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: dockerfiles/Dockerfile
           context: .
