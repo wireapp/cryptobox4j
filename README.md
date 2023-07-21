@@ -10,7 +10,7 @@ See makefiles in [mk](mk) directory.
 <dependency>
     <groupId>com.wire</groupId>
     <artifactId>cryptobox4j</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
