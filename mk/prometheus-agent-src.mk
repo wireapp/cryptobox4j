@@ -1,4 +1,4 @@
-PROMETHEUS_AGENT_VERSION := 0.14.0
+PROMETHEUS_AGENT_VERSION := 0.19.0
 PROMETHEUS_AGENT_NAME    := prometheus-java-agent
 PROMETHEUS_AGENT_GIT_URL := https://github.com/prometheus/jmx_exporter.git
 
