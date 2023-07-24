@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-jdk as cryptobox
+FROM eclipse-temurin:17-jdk as cryptobox
 
 # disable prompts from the txdata
 ENV DEBIAN_FRONTEND=noninteractive
@@ -47,7 +47,7 @@ RUN make dist
 
 ENV LD_LIBRARY_PATH=/wire/cryptobox/dist/lib
 
-FROM eclipse-temurin:11-jre as runtime
+FROM eclipse-temurin:17-jre as runtime
 
 RUN mkdir -p /opt/wire/lib
 # make Java to take this as java.library.path
